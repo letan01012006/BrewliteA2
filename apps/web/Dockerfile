@@ -1,4 +1,4 @@
-# Build after the empty Next.js source files have been implemented.
+# Standalone Next.js server; the API rewrite is resolved at build time.
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1

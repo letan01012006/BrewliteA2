@@ -7,7 +7,23 @@
 
 A2 giữ package/lockfile, cấu hình local và volume database riêng `brewlite-a2_pgdata`.
 
-## Chạy trên Windows PowerShell
+## Chạy frontend và backend cùng lúc bằng Docker
+
+Mở Docker Desktop. Khi `.env` ở root và `apps/api/.env` đã được chuẩn bị, tại root repo chạy:
+
+```powershell
+docker compose up -d --build --wait
+```
+
+Lệnh chạy PostgreSQL, tự áp dụng migration và seed dữ liệu mẫu, sau đó mở backend và frontend:
+
+- Frontend: http://localhost:3000
+- Swagger: http://localhost:4000/api/docs
+- Health: http://localhost:4000/api/health
+
+Database tiếp tục dùng volume `brewlite-a2_pgdata` hiện có. Frontend trong Docker gọi backend qua `http://api:4000/api`. Không cần chạy thêm các lệnh `npm run dev` hoặc `npm run start:dev` trên máy. Docker chạy bản build; chạy lại lệnh trên sau khi sửa code. Xem [hướng dẫn Docker](docs/deployment.md) để chuẩn bị lần đầu, xem logs và đổi cổng.
+
+## Chạy bằng Node.js trên Windows PowerShell
 
 Yêu cầu Node.js 24 LTS (tối thiểu 24.15), npm 11 và Docker Desktop đang chạy. Mỗi app có dependencies riêng, không có npm workspace ở root.
 
@@ -119,7 +135,13 @@ Kiểm tra local ngày 14/11/2026: build hai app đạt, 157 test frontend và 8
 
 ## Dừng ứng dụng
 
-Nhấn Ctrl+C ở hai terminal. Dừng database và giữ dữ liệu:
+Nếu chạy bằng Docker, dừng các container và giữ database:
+
+```powershell
+docker compose stop
+```
+
+Nếu chạy bằng Node.js, nhấn Ctrl+C ở hai terminal. Dừng database và giữ dữ liệu:
 
 ```powershell
 docker compose stop db
@@ -134,4 +156,4 @@ A1 và A2 cùng dùng cổng PostgreSQL mặc định 5432, nên cần đổi `P
 - [Deployment](docs/deployment.md)
 - [Traceability](docs/traceability-matrix.md)
 
-Compose hiện chạy database. Dockerfile web/API và template `.github/workflows/ci.yml.example` cần được xác minh riêng trước khi triển khai; workflow chưa được kích hoạt. Product Backlog/Sprint Board và CD vẫn là các công việc tiếp theo.
+Compose chạy đầy đủ frontend, backend và database; `api-init` chạy migration/seed trước backend. Template `.github/workflows/ci.yml.example` chưa được kích hoạt. Product Backlog/Sprint Board và CD vẫn là các công việc tiếp theo.

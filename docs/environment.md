@@ -4,7 +4,7 @@
 
 | File | Vai trò | Đưa vào Git |
 | --- | --- | --- |
-| `.env` ở root | Docker Compose/PostgreSQL | Không |
+| `.env` ở root | Docker Compose/PostgreSQL và cổng web/API | Không |
 | `apps/api/.env` | Đầy đủ cấu hình API: 29 biến | Không |
 | `apps/web/.env.local` | URL backend cho proxy Next.js | Không |
 | Ba file `.env.example` tương ứng | Tên biến và giá trị mẫu để thiết lập máy khác | Có |
@@ -43,6 +43,12 @@ File mẫu dùng `SMS_PROVIDER=local`, `AUTH_OTP_DEMO=true` và `PAYMENT_MOCK_EN
 Mã nguồn frontend/backend, Prisma schema, migrations và seed đã được chuyển từ A1. Đã áp dụng 12 migrations vào database A2, nạp dữ liệu mẫu, kiểm tra health, danh sách sản phẩm và đăng nhập khách/nhân viên thông qua proxy frontend. Hướng dẫn chạy nằm trong [README](../README.md).
 
 `apps/api/vitest.config.e2e.ts` đặt môi trường test riêng với SMS local, secret test và thanh toán giả lập. Cấu hình này chỉ áp dụng cho test; giữ `TEST_DATABASE_URL` riêng với `DATABASE_URL`.
+
+## Docker Compose
+
+`docker compose up -d --build --wait` chạy `db`, bước migration/seed `api-init`, `api` và `web`. API nạp cấu hình từ `apps/api/.env`; Compose ghi đè `PORT=4000` và `DATABASE_URL` sang database ở `db:5432`, lấy tài khoản từ `.env` root. File local không bị sửa.
+
+`WEB_PORT` (mặc định 3000), `API_PORT` (4000), `POSTGRES_PORT` (5432) trong `.env` root chỉ điều khiển cổng trên máy. Frontend dùng `BACKEND_API_URL=http://api:4000/api` lúc build và chạy trong Docker, độc lập với `apps/web/.env.local`. Hướng dẫn đầy đủ nằm trong [deployment.md](deployment.md).
 
 ## Profile Postman
 
