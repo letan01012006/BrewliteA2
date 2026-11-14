@@ -1,0 +1,33 @@
+# Local secrets; keep the committed example.
+.env
+.env.*
+!.env.example
+
+# Installed dependencies and caches.
+node_modules/
+.npm/
+.next/
+.turbo/
+.cache/
+.eslintcache
+
+# Compiled output and reports.
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+*.log
+npm-debug.log*
+
+# Local editor / OS files.
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Prisma output is generated after the schema is implemented.
+/apps/api/src/generated/prisma/*
+!/apps/api/src/generated/prisma/.gitkeep
+.local-backups/
