@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1700" height="1050" viewBox="0 0 1700 1050" role="img" aria-labelledby="title desc"><title id="title">Use Case Task 1.3 - Đặt đơn và Thanh toán BrewLite A2</title><desc id="desc">Khách hàng thực hiện use case đặt đơn và thanh toán; có include tạo đơn, thanh toán, xác thực tồn giá và chốt giao dịch; extend khi chưa đăng nhập; khi thanh toán thất bại được mô tả như một lượt thanh toán mới.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8.7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L9,3 L0,6 Z" fill="#738A9A"/></marker><filter id="smallshadow"><feDropShadow dx="0" dy="2" stdDeviation="5" flood-opacity="0.07"/></filter></defs>
+<rect width="1700" height="1050" fill="#FCFEFF"/><rect width="1700" height="128" fill="#16354E"/>
+
+<text x="850" y="50" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="800" fill="#BCDCEE" text-anchor="middle">TASK 1.3  |  USE CASE TRỌNG TÂM</text>
+<text x="850" y="94" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" font-weight="800" fill="#FFFFFF" text-anchor="middle">ĐẶT ĐƠN HÀNG VÀ THANH TOÁN · BREWLITE A2</text>
+<rect x="215" y="164" width="1440" height="775" rx="19" fill="white" stroke="#ADC4D3" stroke-width="2.5" filter="url(#smallshadow)"/>
+<text x="247" y="207" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="750" fill="#19354C" text-anchor="start">HỆ THỐNG BREWLITE A2 · PHẠM VI CHECKOUT</text>
+<path d="M250 227 H1620" stroke="#E2EBF0" stroke-width="2"/>
+<rect x="815" y="250" width="780" height="630" rx="14" fill="#F8FBFE" stroke="#E9F1F6" stroke-width="1.2"/>
+<text x="1195" y="280" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" font-weight="800" fill="#7A91A1" text-anchor="middle">CÁC BƯỚC NGHIỆP VỤ BẮT BUỘC</text>
+<path d="M155 553 H389" fill="none" stroke="#64788B" stroke-width="2.5" stroke-linecap="round"/>
+<circle cx="102" cy="487" r="20" fill="white" stroke="#4B6478" stroke-width="3"/>
+<path d="M102 507 V566 M64 526 H140 M102 566 L70 612 M102 566 L134 612" stroke="#4B6478" stroke-width="3.3" fill="none" stroke-linecap="round"/>
+<text x="102" y="650" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="700" fill="#19354C" text-anchor="middle">Khách hàng</text>
+<text x="102" y="675" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" font-weight="400" fill="#587083" text-anchor="middle">Customer</text>
+<path d="M565 388 L565 470" fill="none" stroke="#738A9A" stroke-width="2.1" stroke-linecap="round" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+<text x="638" y="420" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="700" fill="#A36E35" text-anchor="middle">«extend»</text>
+<text x="642" y="443" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" font-weight="500" fill="#8B6A4D" text-anchor="middle">Chưa có JWT</text>
+<path d="M715 505 L847 397" fill="none" stroke="#738A9A" stroke-width="2.1" stroke-linecap="round" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+<text x="763" y="430" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="700" fill="#64788B" text-anchor="middle">«include»</text>
+<path d="M744 577 L847 625" fill="none" stroke="#738A9A" stroke-width="2.1" stroke-linecap="round" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+<text x="784" y="578" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="700" fill="#64788B" text-anchor="middle">«include»</text>
+<path d="M1175 366 L1240 366" fill="none" stroke="#738A9A" stroke-width="2.1" stroke-linecap="round" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+<text x="1207" y="336" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" font-weight="700" fill="#64788B" text-anchor="middle">«include»</text>
+<path d="M1175 647 L1239 647" fill="none" stroke="#738A9A" stroke-width="2.1" stroke-linecap="round" stroke-dasharray="8 7" marker-end="url(#arrow)"/>
+<text x="1205" y="615" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" font-weight="700" fill="#64788B" text-anchor="middle">«include»</text>
+<path d="M153 588 C211 782 284 832 374 834" fill="none" stroke="#64788B" stroke-width="2.3" stroke-linecap="round"/>
+<ellipse cx="570" cy="323" rx="172" ry="64" fill="#FFF5E7" stroke="#CE9550" stroke-width="2"/>
+<text x="570" y="317.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="600" fill="#19354C" text-anchor="middle">UC-05  ·  Đăng nhập</text>
+<text x="570" y="344.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="500" fill="#19354C" text-anchor="middle">(khi chưa xác thực)</text>
+<ellipse cx="569" cy="548" rx="177" ry="79" fill="#DDF5E9" stroke="#2D9B68" stroke-width="2"/>
+<text x="569" y="542.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="800" fill="#19354C" text-anchor="middle">ĐẶT ĐƠN &amp; THANH TOÁN</text>
+<text x="569" y="569.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="500" fill="#19354C" text-anchor="middle">Use case trọng tâm  ·  Task 1.3</text>
+<ellipse cx="991" cy="366" rx="184" ry="70" fill="#F3F9FF" stroke="#6F9DB7" stroke-width="2"/>
+<text x="991" y="360.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="600" fill="#19354C" text-anchor="middle">UC-06  ·  Đặt đơn hàng</text>
+<text x="991" y="387.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="500" fill="#19354C" text-anchor="middle">Tạo Order: PENDING</text>
+<ellipse cx="1412" cy="366" rx="172" ry="70" fill="#F3F9FF" stroke="#6F9DB7" stroke-width="2"/>
+<text x="1412" y="360.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="600" fill="#19354C" text-anchor="middle">Tính lại giá /</text>
+<text x="1412" y="387.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="500" fill="#19354C" text-anchor="middle">Kiểm tra nguyên liệu</text>
+<ellipse cx="991" cy="647" rx="184" ry="70" fill="#F3F9FF" stroke="#6F9DB7" stroke-width="2"/>
+<text x="991" y="641.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="600" fill="#19354C" text-anchor="middle">UC-07  ·  Thanh toán</text>
+<text x="991" y="668.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="500" fill="#19354C" text-anchor="middle">Ví / Thẻ mô phỏng</text>
+<ellipse cx="1413" cy="647" rx="172" ry="70" fill="#F3F9FF" stroke="#6F9DB7" stroke-width="2"/>
+<text x="1413" y="641.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="600" fill="#19354C" text-anchor="middle">Ghi nhận giao dịch /</text>
+<text x="1413" y="668.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="500" fill="#19354C" text-anchor="middle">Cập nhật trạng thái</text>
+<path d="M990 720 V780" fill="none" stroke="#CE9550" stroke-width="1.8" stroke-dasharray="3 7"/>
+<rect x="798" y="786" width="407" height="122" rx="15" fill="#FFF8EB" stroke="#CE9550" stroke-width="1.8"/>
+<text x="1001" y="820" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="700" fill="#845B31" text-anchor="middle">LUỒNG THAY THẾ SAU KHI THANH TOÁN</text>
+<text x="1001" y="853" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" font-weight="500" fill="#684D33" text-anchor="middle">FAILED: thực hiện UC-07 mới với key mới</text>
+<text x="1001" y="883" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" font-weight="500" fill="#684D33" text-anchor="middle">Chưa rõ kết quả: thử lại cùng key cũ</text>
+<ellipse cx="561" cy="835" rx="187" ry="64" fill="#F3F9FF" stroke="#6F9DB7" stroke-width="2"/>
+<text x="561" y="829.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="600" fill="#19354C" text-anchor="middle">UC-09  ·  Xem chi tiết</text>
+<text x="561" y="856.5" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="500" fill="#19354C" text-anchor="middle">&amp; theo dõi đơn</text>
+<rect x="354" y="717" width="275" height="37" rx="9" fill="#EDF4F8"/>
+<text x="491" y="742" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" font-weight="600" fill="#537285" text-anchor="middle">Sử dụng sau checkout</text>
+<rect x="40" y="966" width="1620" height="58" rx="12" fill="#EDF4F8"/>
+<text x="75" y="1001" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="750" fill="#19354C" text-anchor="start">Quy tắc: </text>
+<text x="169" y="1001" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" font-weight="500" fill="#19354C" text-anchor="start">Giá tính tại server  •  Kiểm tra nguyên liệu  •  Idempotency-Key khi thanh toán  •  SUCCESS → PAID  •  FAILED → PAYMENT_FAILED</text>
+</svg>
