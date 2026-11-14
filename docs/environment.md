@@ -43,3 +43,11 @@ File mẫu dùng `SMS_PROVIDER=local`, `AUTH_OTP_DEMO=true` và `PAYMENT_MOCK_EN
 Mã nguồn frontend/backend, Prisma schema, migrations và seed đã được chuyển từ A1. Đã áp dụng 12 migrations vào database A2, nạp dữ liệu mẫu, kiểm tra health, danh sách sản phẩm và đăng nhập khách/nhân viên thông qua proxy frontend. Hướng dẫn chạy nằm trong [README](../README.md).
 
 `apps/api/vitest.config.e2e.ts` đặt môi trường test riêng với SMS local, secret test và thanh toán giả lập. Cấu hình này chỉ áp dụng cho test; giữ `TEST_DATABASE_URL` riêng với `DATABASE_URL`.
+
+## Profile Postman
+
+Chạy `npm.cmd --prefix apps/api run postman:dev` tại root để mở API test ở cổng 4001. Script `apps/api/scripts/start-postman.mjs` đọc `.env`, kiểm tra hai database khác nhau, generate Prisma, áp dụng migrations và seed vào `TEST_DATABASE_URL` trước khi chạy NestJS.
+
+Các giá trị chỉ ghi đè trong tiến trình này: `DATABASE_URL` lấy từ `TEST_DATABASE_URL`, `NODE_ENV=development`, SMS local, `AUTH_OTP_DEMO=true`, `PAYMENT_MOCK_ENABLED=true` và seed quản lý demo. JWT/OTP dùng secret ngẫu nhiên mới mỗi phiên; khóa eSMS và VNPAY được để trống trong profile. File `.env` và API dev cổng 4000 giữ cấu hình hiện có.
+
+Có thể đổi cổng bằng biến tiến trình `POSTMAN_PORT`; khi đó cập nhật `base_url` trong environment Postman. Database test dùng schema `public`; các bộ E2E của dự án tạo schema riêng. Xem [postman/README.md](../postman/README.md) để import và chạy collection.

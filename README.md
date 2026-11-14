@@ -87,6 +87,16 @@ Seed tạo 10 sản phẩm, 3 topping, công thức/nguyên liệu, 3 mã khuy�
 
 Seed quản lý là tùy chọn: đặt `AUTH_DEMO_SEED=true`, điền `DEMO_MANAGER_PHONE`, `DEMO_MANAGER_PASSWORD` trong API `.env`, rồi chạy lại seed trong môi trường development/test.
 
+## Test API bằng Postman
+
+Tại root repo, chạy profile test riêng:
+
+```powershell
+npm.cmd --prefix apps/api run postman:dev
+```
+
+API test chạy tại `http://localhost:4001/api`, dùng `TEST_DATABASE_URL`, OTP `123456` và thanh toán giả lập. Import hai file JSON trong [postman/](postman/README.md), chọn environment **BrewLite A2 — Postman Demo** rồi chạy folder **01. Luồng test tự động**. Bộ mẫu tự lưu JWT/ID và kiểm tra luồng đăng ký, đăng nhập bằng SĐT/email, đặt món, thanh toán, barista xử lý đơn và quản lý tạo nhân viên. Xem [hướng dẫn Postman](postman/README.md) để gọi riêng đủ 43 endpoint.
+
 ## Kiểm tra
 
 ```powershell
