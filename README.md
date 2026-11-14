@@ -28,7 +28,7 @@ if (-not (Test-Path apps/api/.env)) {
 }
 ```
 
-Trong `apps/api/.env`, thay `JWT_SECRET` và `OTP_HASH_SECRET` bằng hai secret riêng dài ít nhất 32 ký tự. Xem [cấu hình môi trường](docs/environment.md).
+Trong `apps/api/.env`, thay `JWT_SECRET` và `OTP_HASH_SECRET` bằng hai secret riêng dài ít nhất 32 ký tự. Các biến cấu hình được liệt kê trong [file mẫu](apps/api/.env.example).
 
 Khởi động toàn bộ ứng dụng:
 
@@ -73,11 +73,27 @@ npm.cmd --prefix apps/api run postman:dev
 
 Import hai file JSON trong `tests/postman/`, chọn environment **BrewLite A2 — Postman Demo**, rồi chạy folder **01. Luồng test tự động**. Profile dùng cổng **4001**, database test riêng, OTP **123456** và thanh toán giả lập; token được lưu tự động. Xem [hướng dẫn Postman](tests/postman/README.md).
 
+## Quy ước làm việc
+
+[Product Backlog](docs/BACKLOG.md): [Sprint 1](docs/BACKLOG.md#sprint-1) · [Sprint 2](docs/BACKLOG.md#sprint-2). Bản tổng hợp lưu trực tiếp trong repo.
+
+| Nội dung | Quy ước |
+| --- | --- |
+| Branch | Tạo từ `main` mới nhất, đặt tên `a2/task-<mã>-<mô-tả>`, ví dụ `a2/task-4.4-ci`. |
+| Commit | Dạng `<type>: <nội dung tiếng Việt>`, ví dụ `feat: thêm chức năng đặt món`. Type dùng `feat`, `fix`, `docs`, `refactor`, `test`, `ci` hoặc `chore`. |
+| Pull Request | Một PR tập trung vào một task, mở vào `main`; ghi mã task, thay đổi chính và cách kiểm tra. Merge qua PR khi `CI (api)` và `CI (web)` pass, nhánh đã cập nhật với `main`. |
+
+### Definition of Done
+
+Một task được đánh dấu **Done** khi:
+
+- Đáp ứng tiêu chí chấp nhận của task.
+- Lint, test và build liên quan đạt; các check CI bắt buộc đều pass.
+- Thay đổi giao diện đã kiểm tra trên mobile và desktop; thay đổi API có request/response hoặc bộ Postman để đối chiếu.
+- Tài liệu, migration và cấu hình mẫu được cập nhật nếu có thay đổi tương ứng.
+- PR đã được kiểm tra diff và merge vào `main`; trạng thái task được cập nhật.
+
 ## Tài liệu
 
 - [CI và bằng chứng kiểm tra](docs/ci.md)
-- [Phát triển bằng Node.js](docs/development.md)
-- [Docker Compose](docs/deployment.md)
 - [Kiểm thử](tests/README.md)
-- [Cây mã nguồn](docs/source-tree.md)
-- [Traceability matrix](docs/traceability-matrix.md)
