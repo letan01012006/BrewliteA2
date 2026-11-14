@@ -30,7 +30,7 @@ Trạng thái dưới đây chỉ áp dụng cho phần việc ghi trong từng 
 | BL-01 | Cấu trúc repo và quy ước làm việc | Must | Nhóm | Có `apps`, `docs`, `scripts`, `tests`; README hướng dẫn chạy, quy ước Git, PR, commit, DoD và link backlog hai sprint. [README](../README.md). | Review |
 | BL-02 | Đặc tả yêu cầu và user story | Must | Nhóm | Lưu bối cảnh, stakeholder, phạm vi, yêu cầu chức năng/phi chức năng và tiêu chí chấp nhận cho luồng đặt món. [Thư mục yêu cầu](requirements/). | Todo |
 | BL-03 | Sơ đồ nghiệp vụ và miền dữ liệu | Must | Nhóm | Có Activity, Sequence và Domain Class Diagram khớp API/schema hiện tại, kèm nguồn sơ đồ và bản xuất để xem. [Thư mục sơ đồ](diagrams/). | Todo |
-| BL-04 | Kiến trúc và quyết định kỹ thuật | Must | BE, DevOps | Mô tả ranh giới web/API/database, cách triển khai và ADR cho các quyết định chính. [Thư mục kiến trúc](architecture/). | Todo |
+| BL-04 | Kiến trúc và quyết định kỹ thuật | Must | BE, DevOps | Mô tả phân lớp, ranh giới web/API/database, payment mock, logging/health/config và trade-off; đối chiếu [Task 3.1](architecture/README.md) cùng [ADRs](architecture/adr/). Tài liệu đã soạn, cần review/merge. | Review |
 | BL-05 | Database, migrations và seed | Must | BE | Prisma generate/build được; migrations áp dụng thành công; seed tạo dữ liệu mẫu và chạy lại không tạo trùng. [Prisma](../apps/api/prisma/). | Done |
 | BL-06 | API danh sách và chi tiết đồ uống | Must | BE | `GET /api/products` hỗ trợ phân trang; xem chi tiết sản phẩm, size và topping; ID không tồn tại trả lỗi phù hợp. [Kiểm thử API sản phẩm](../apps/api/test/products-api.e2e-spec.ts). | Done |
 | BL-07 | Menu ưu tiên mobile, hỗ trợ desktop | Must | FE | Hiển thị sản phẩm và giá; có loading, empty, error; chọn món được trên mobile và desktop, không tràn ngang. [Giao diện](../apps/web/src/app/), [Product Card](../apps/web/src/components/products/product-card.tsx). | Review |
@@ -54,10 +54,11 @@ Trạng thái dưới đây chỉ áp dụng cho phần việc ghi trong từng 
 | BL-20 | Hủy đơn và hoàn tiền | Should | BE, FE | Chỉ hủy/hoàn ở trạng thái cho phép; ghi nhận kết quả thanh toán, điểm và kho nhất quán; kiểm tra thao tác lặp và lỗi gateway. [Test thanh toán](../apps/api/test/payments-vnpay.e2e-spec.ts). | Review |
 | BL-21 | Tích hợp VNPAY sandbox | Should | BE, FE | Có URL thanh toán, kiểm tra chữ ký, return/IPN và đối soát; test dữ liệu sai kiểu; bổ sung bằng chứng giao dịch sandbox thật. Test mock hiện có chưa thay thế kiểm tra gateway thật. [Gateway](../apps/api/src/payments/vnpay/). | Review |
 | BL-22 | Quản lý tạo tài khoản nhân viên | Should | BE | Manager tạo barista, mật khẩu được băm, không lộ hash; barista mới đăng nhập được; vai trò khác không có quyền tạo nhân viên. [Staff API](../apps/api/src/auth/staff.controller.ts), [Postman](../tests/postman/README.md). | Done |
-| BL-23 | Bộ kiểm thử và tài liệu thử API | Must | QA, BE, FE | Unit test hai app chạy được; có E2E database riêng; Postman tự lưu token/ID, kiểm tra luồng mua hàng và phân quyền. [Hướng dẫn test](../tests/README.md), [log CI](evidence/ci/pass.txt). | Done |
+| BL-23 | Bộ kiểm thử và tài liệu thử API | Must | QA, BE, FE | Unit test hai app chạy được; có E2E database riêng; Postman tự lưu token/ID, kiểm tra luồng mua hàng và phân quyền. [Hướng dẫn test](../tests/README.md), [kết quả CI](ci.md#bằng-chứng). | Done |
 | BL-24 | Continuous Delivery | Must | DevOps | Pipeline build/publish image hoặc deploy sau khi main đạt CI; gắn phiên bản theo commit và lưu log của một lần chạy thành công. Repo hiện mới có workflow CI. | Todo |
 | BL-25 | Triển khai môi trường demo công khai | Must | DevOps | Có URL HTTPS truy cập được, backend kết nối database, cấu hình môi trường tách khỏi code và có kịch bản kiểm tra sau triển khai. Chưa có URL/nghiệm thu cloud được ghi nhận trong repo. | Todo |
 | BL-26 | Traceability và nghiệm thu cuối | Must | Nhóm, QA | Ánh xạ yêu cầu → backlog → mã/test → PR; lưu kết quả demo từ menu đến thanh toán và xử lý tại quầy; cập nhật trạng thái theo DoD. | Todo |
+| BL-27 | PWA có khả năng cài đặt và cập nhật an toàn | Should | FE, QA | Bổ sung manifest/icons và kiểm tra vòng đời worker/cache; không cache dữ liệu giao dịch riêng tư hoặc gửi thanh toán nền. Bản hiện tại chỉ gỡ PWA cũ. [ADR 006](architecture/adr/006-pwa-strategy.md). | Todo |
 
 ## Bằng chứng hiện có
 
