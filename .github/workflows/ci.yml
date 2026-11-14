@@ -50,5 +50,8 @@ jobs:
         run: npm run lint
       - name: Unit tests
         run: npm test
+      - name: Deployment safety tests
+        if: matrix.app == 'web'
+        run: node --test ../../tests/deployment/*.test.mjs
       - name: Build
         run: npm run build

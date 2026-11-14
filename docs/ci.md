@@ -2,7 +2,9 @@
 
 Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml). File `ci.yml.example` đã được thay bằng workflow hoạt động.
 
-CI chạy khi mở/cập nhật PR vào `main`, khi push lên `main`, hoặc chạy thủ công. Hai job `CI (api)` và `CI (web)` dùng Node.js 24, `npm ci`, lint, unit test và build. API chạy `prisma:generate` trước lint/test/build; database URL trong workflow chỉ là giá trị mẫu để generate, không kết nối database hay dùng secret local.
+CI chạy khi mở/cập nhật PR vào `main`, khi push lên `main`, hoặc chạy thủ công. Hai job `CI (api)` và `CI (web)` dùng Node.js 24, `npm ci`, lint, unit test và build. Job web chạy thêm test cho các script kiểm soát CD. API chạy `prisma:generate` trước lint/test/build; database URL trong workflow chỉ là giá trị mẫu để generate, không kết nối database hay dùng secret local.
+
+[CD](deployment.md) được cấu hình nhận kết quả CI thành công trên `main`, triển khai API trên Render và frontend trên Vercel. Việc chạy cloud cần điền cấu hình project/token; chưa có lượt CD thành công được ghi nhận.
 
 ## Điều kiện merge vào main
 

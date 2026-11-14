@@ -1,11 +1,28 @@
 import type { NextConfig } from "next";
 
+const configuredBackend = process.env.BACKEND_API_URL?.trim();
+if (process.env.VERCEL && !configuredBackend) {
+  throw new Error("Set BACKEND_API_URL on Vercel before building the web app.");
+}
+const backend = (configuredBackend || "http://127.0.0.1:4000/api").replace(/\/+$/, "");
+const backendUrl = new URL(backend);
+if (
+  !["http:", "https:"].includes(backendUrl.protocol) ||
+  backendUrl.username || backendUrl.password || backendUrl.search || backendUrl.hash ||
+  backendUrl.pathname !== "/api"
+) {
+  throw new Error("BACKEND_API_URL must be an HTTP(S) URL ending in /api without credentials, query or fragment.");
+}
+if (process.env.VERCEL && (
+  backendUrl.protocol !== "https:" ||
+  ["localhost", "127.0.0.1", "[::1]", "api", "db"].includes(backendUrl.hostname)
+)) {
+  throw new Error("BACKEND_API_URL on Vercel must point to the public HTTPS backend.");
+}
+
 const nextConfig: NextConfig = {
   output: "standalone",
   async rewrites() {
-    const backend = (
-      process.env.BACKEND_API_URL || "http://127.0.0.1:4000/api"
-    ).replace(/\/$/, "");
     return [{ source: "/api/:path*", destination: `${backend}/:path*` }];
   },
   cacheComponents: true,

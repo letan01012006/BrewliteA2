@@ -1,0 +1,123 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+# Let an active release finish; do not interrupt a database migration/deploy.
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy API and Vercel web
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: production
+    env:
+      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      BACKEND_API_URL: ${{ vars.BACKEND_API_URL }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - name: Checkout the CI-tested commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - name: Verify main revision and successful CI
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/deploy/verify-ci.mjs
+      - name: Validate deployment settings
+        if: steps.gate.outputs.current == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          node --input-type=module <<'NODE'
+          for (const name of ['VERCEL_TOKEN', 'VERCEL_ORG_ID', 'VERCEL_PROJECT_ID', 'BACKEND_API_URL']) {
+            if (!process.env[name]) throw new Error(`Missing production setting: ${name}`);
+          }
+          const url = new URL(process.env.BACKEND_API_URL);
+          if (url.protocol !== 'https:' || url.pathname.replace(/\/$/, '') !== '/api' || url.username || url.password || url.search || url.hash) {
+            throw new Error('BACKEND_API_URL must be a public HTTPS API URL ending in /api.');
+          }
+          if (process.env.RENDER_SERVICE_ID && !process.env.RENDER_API_KEY) throw new Error('Set RENDER_API_KEY when using Render CD.');
+          NODE
+      - name: Deploy the same commit to Render and wait until live
+        if: steps.gate.outputs.current == 'true' && vars.RENDER_SERVICE_ID != ''
+        env:
+          RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: node scripts/deploy/render.mjs
+      - name: Check API and database
+        if: steps.gate.outputs.current == 'true'
+        run: node scripts/deploy/smoke.mjs "$BACKEND_API_URL" --api-only
+      - name: Install pinned Vercel CLI
+        if: steps.gate.outputs.current == 'true'
+        run: npm install --global vercel@65.16.0
+      - name: Pull Vercel production project settings
+        if: steps.gate.outputs.current == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Check Vercel monorepo configuration
+        if: steps.gate.outputs.current == 'true'
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const project = JSON.parse(readFileSync('.vercel/project.json', 'utf8'));
+          if (project.settings?.rootDirectory !== 'apps/web') throw new Error('Set Vercel Root Directory to apps/web.');
+          NODE
+      - name: Build Vercel production output
+        if: steps.gate.outputs.current == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod --yes --token="$VERCEL_TOKEN"
+      - name: Upload deployment without moving production domain
+        if: steps.gate.outputs.current == 'true'
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          url=$(vercel deploy --prebuilt --prod --skip-domain --yes --token="$VERCEL_TOKEN" --meta "githubCommitSha=$DEPLOY_SHA")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Verify deployed web and API proxy
+        if: steps.gate.outputs.current == 'true'
+        env:
+          DEPLOYMENT_URL: ${{ steps.vercel.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: node scripts/deploy/smoke.mjs "$DEPLOYMENT_URL"
+      - name: Promote tested deployment to production domain
+        if: steps.gate.outputs.current == 'true'
+        env:
+          DEPLOYMENT_URL: ${{ steps.vercel.outputs.url }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel promote "$DEPLOYMENT_URL" --yes --token="$VERCEL_TOKEN"
+          echo "### Production deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit: $DEPLOY_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Deployment: $DEPLOYMENT_URL" >> "$GITHUB_STEP_SUMMARY"
