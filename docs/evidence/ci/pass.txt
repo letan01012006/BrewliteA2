@@ -1,0 +1,31 @@
+GitHub Actions log excerpts
+Run: https://github.com/letan01012006/BrewliteA2/actions/runs/43615113298
+Commit: 6caad2fb3b5cc9c9d3e82af9699dc99fb538de89
+Conclusion: success
+
+Job: CI (api)
+Job URL: https://github.com/letan01012006/BrewliteA2/actions/runs/43615113298/job/132508345073
+Conclusion: success
+2026-11-14T16:21:01.5340372Z ##[group]Run npm ci
+2026-11-14T16:21:12.1852278Z ##[group]Run npm run prisma:generate
+2026-11-14T16:21:13.1116451Z ✔ Generated Prisma Client (6.19.3) to ./src/generated/prisma in 128ms
+2026-11-14T16:21:13.1400307Z ##[group]Run npm run lint
+2026-11-14T16:21:13.9053120Z Found 0 warnings and 0 errors.
+2026-11-14T16:21:13.9180765Z ##[group]Run npm test
+2026-11-14T16:21:15.5162349Z  Test Files  10 passed (10)
+2026-11-14T16:21:15.5163401Z       Tests  87 passed (87)
+2026-11-14T16:21:15.5473668Z ##[group]Run npm run build
+2026-11-14T16:21:15.6314188Z > nest build
+
+Job: CI (web)
+Job URL: https://github.com/letan01012006/BrewliteA2/actions/runs/43615113298/job/132508345320
+Conclusion: success
+2026-11-14T16:21:05.2111182Z ##[group]Run npm ci
+2026-11-14T16:21:12.4886019Z ##[group]Run npm run lint
+2026-11-14T16:21:17.7231739Z ##[group]Run npm test
+2026-11-14T16:21:24.3977921Z ℹ tests 164
+2026-11-14T16:21:24.3978477Z ℹ pass 164
+2026-11-14T16:21:24.3978734Z ℹ fail 0
+2026-11-14T16:21:24.4126510Z ##[group]Run npm run build
+2026-11-14T16:21:24.4973062Z > next build
+2026-11-14T16:21:28.2216373Z ✓ Compiled successfully in 3.4s

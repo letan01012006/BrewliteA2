@@ -75,6 +75,7 @@ Import hai file JSON trong `tests/postman/`, chọn environment **BrewLite A2 �
 
 ## Tài liệu
 
+- [CI và bằng chứng kiểm tra](docs/ci.md)
 - [Phát triển bằng Node.js](docs/development.md)
 - [Docker Compose](docs/deployment.md)
 - [Kiểm thử](tests/README.md)

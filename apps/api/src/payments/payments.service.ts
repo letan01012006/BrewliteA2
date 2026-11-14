@@ -35,7 +35,11 @@ import {
 } from '../orders/order-loyalty.js';
 import { assertTransition } from '../orders/order-state.js';
 import { VnpayGateway, type VnpayQueryResult } from './vnpay/vnpay.gateway.js';
-import { parseVnpDate, sanitizeVnpayPayload } from './vnpay/vnpay.util.js';
+import {
+  parseVnpDate,
+  sanitizeVnpayPayload,
+  vnpayString,
+} from './vnpay/vnpay.util.js';
 import {
   POINTS_STEP,
   pointsToDiscountVnd,
@@ -1067,9 +1071,9 @@ export class PaymentsService {
     }
 
     // Settlement rechecks the current state while holding the order lock.
-    const responseCode = String(query.vnp_ResponseCode ?? '99');
+    const responseCode = vnpayString(query.vnp_ResponseCode ?? '99');
     const transactionStatus = query.vnp_TransactionStatus
-      ? String(query.vnp_TransactionStatus)
+      ? vnpayString(query.vnp_TransactionStatus)
       : undefined;
 
     const isSuccess =
@@ -1083,11 +1087,15 @@ export class PaymentsService {
         responseCode,
         transactionStatus,
         transactionNo: query.vnp_TransactionNo
-          ? String(query.vnp_TransactionNo)
+          ? vnpayString(query.vnp_TransactionNo)
           : undefined,
-        bankCode: query.vnp_BankCode ? String(query.vnp_BankCode) : undefined,
-        cardType: query.vnp_CardType ? String(query.vnp_CardType) : undefined,
-        payDate: query.vnp_PayDate ? String(query.vnp_PayDate) : undefined,
+        bankCode: query.vnp_BankCode
+          ? vnpayString(query.vnp_BankCode)
+          : undefined,
+        cardType: query.vnp_CardType
+          ? vnpayString(query.vnp_CardType)
+          : undefined,
+        payDate: query.vnp_PayDate ? vnpayString(query.vnp_PayDate) : undefined,
         amount: payment.amount,
         source: 'IPN',
         rawPayload: query,
@@ -1177,9 +1185,9 @@ export class PaymentsService {
         });
       } else {
         // Nếu querydr không trả về hoặc timeout, sử dụng trực tiếp kết quả đã ký trên Return URL
-        const returnResponseCode = String(query.vnp_ResponseCode ?? '99');
+        const returnResponseCode = vnpayString(query.vnp_ResponseCode ?? '99');
         const returnTxnStatus = query.vnp_TransactionStatus
-          ? String(query.vnp_TransactionStatus)
+          ? vnpayString(query.vnp_TransactionStatus)
           : undefined;
         const returnSuccess =
           returnResponseCode === '00' &&
@@ -1192,15 +1200,17 @@ export class PaymentsService {
             responseCode: returnResponseCode,
             transactionStatus: returnTxnStatus,
             transactionNo: query.vnp_TransactionNo
-              ? String(query.vnp_TransactionNo)
+              ? vnpayString(query.vnp_TransactionNo)
               : undefined,
             bankCode: query.vnp_BankCode
-              ? String(query.vnp_BankCode)
+              ? vnpayString(query.vnp_BankCode)
               : undefined,
             cardType: query.vnp_CardType
-              ? String(query.vnp_CardType)
+              ? vnpayString(query.vnp_CardType)
               : undefined,
-            payDate: query.vnp_PayDate ? String(query.vnp_PayDate) : undefined,
+            payDate: query.vnp_PayDate
+              ? vnpayString(query.vnp_PayDate)
+              : undefined,
             source: 'RETURN',
             rawPayload: query,
           },

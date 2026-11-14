@@ -10,6 +10,20 @@ export interface VnpayConfig {
   defaultBankCode?: string;
 }
 
+/** Convert scalar gateway values without stringifying objects or arrays. */
+export function vnpayString(value: unknown): string {
+  if (value === undefined || value === null) return '';
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    typeof value === 'bigint'
+  ) {
+    return String(value);
+  }
+  throw new TypeError('VNPAY parameter values must be scalar.');
+}
+
 /**
  * Định dạng Date thành chuỗi 14 chữ số yyyyMMddHHmmss theo giờ Asia/Ho_Chi_Minh (+07:00).
  */
@@ -25,7 +39,8 @@ export function formatVnpDate(date: Date = new Date()): string {
     hour12: false,
   });
   const parts = formatter.formatToParts(date);
-  const get = (type: string) => parts.find((p) => p.type === type)?.value || '00';
+  const get = (type: string) =>
+    parts.find((p) => p.type === type)?.value || '00';
   return `${get('year')}${get('month')}${get('day')}${get('hour')}${get('minute')}${get('second')}`;
 }
 
@@ -75,7 +90,7 @@ export function buildVnpaySignData(params: Record<string, unknown>): {
     .filter((k) => {
       if (k === 'vnp_SecureHash' || k === 'vnp_SecureHashType') return false;
       const v = params[k];
-      return v !== undefined && v !== null && String(v).trim() !== '';
+      return v !== undefined && v !== null && vnpayString(v).trim() !== '';
     })
     .sort();
 
@@ -83,7 +98,7 @@ export function buildVnpaySignData(params: Record<string, unknown>): {
   const queryParts: string[] = [];
 
   for (const key of sortedKeys) {
-    const rawVal = String(params[key]);
+    const rawVal = vnpayString(params[key]);
     const encodedKey = encodeVnpParam(key);
     const encodedVal = encodeVnpParam(rawVal);
     signParts.push(`${encodedKey}=${encodedVal}`);
@@ -116,7 +131,13 @@ export function verifyVnpaySignature(
   const secureHash = params['vnp_SecureHash'];
   if (!secureHash || typeof secureHash !== 'string') return false;
 
-  const { signData } = buildVnpaySignData(params);
+  let signData: string;
+  try {
+    ({ signData } = buildVnpaySignData(params));
+  } catch (error) {
+    if (error instanceof TypeError) return false;
+    throw error;
+  }
   const calculated = signHmacSha512(signData, secret);
 
   const calcBuf = Buffer.from(calculated.toLowerCase(), 'utf-8');
@@ -144,7 +165,12 @@ export function buildPaymentUrl(
     bankCode?: string;
     txnRef?: string;
   },
-): { paymentUrl: string; txnRef: string; vnpCreateDate: string; expiresAt: Date } {
+): {
+  paymentUrl: string;
+  txnRef: string;
+  vnpCreateDate: string;
+  expiresAt: Date;
+} {
   const createDate = params.createDate ?? new Date();
   const expireMinutes = config.expireMinutes ?? 15;
   const expiresAt =
@@ -153,7 +179,8 @@ export function buildPaymentUrl(
 
   const vnpCreateDate = formatVnpDate(createDate);
   const vnpExpireDate = formatVnpDate(expiresAt);
-  const txnRef = params.txnRef ?? generateTxnRef(params.orderId, params.paymentId);
+  const txnRef =
+    params.txnRef ?? generateTxnRef(params.orderId, params.paymentId);
 
   const vnpParams: Record<string, string> = {
     vnp_Version: '2.1.0',
