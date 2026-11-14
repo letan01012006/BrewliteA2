@@ -8,4 +8,3 @@ coverage
 test
 *.log
 src/generated/prisma
-scripts

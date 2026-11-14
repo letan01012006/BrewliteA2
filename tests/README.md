@@ -1,0 +1,20 @@
+# Kiểm thử dự án
+
+| Vị trí | Phạm vi |
+| --- | --- |
+| `tests/postman/` | Collection/environment để thử API bằng Postman hoặc Newman |
+| `apps/api/src/**/*.spec.ts` | Unit test API |
+| `apps/api/test/` | API E2E và công cụ kiểm tra browser liên quan |
+| `apps/web/test/` | Test frontend và các script kiểm tra browser |
+
+Test riêng của từng app được giữ cạnh mã nguồn để dùng đúng cấu hình và dependencies hiện có. Chạy từ root:
+
+```powershell
+npm.cmd --prefix apps/web test
+npm.cmd --prefix apps/api test
+npm.cmd --prefix apps/api run test:e2e
+```
+
+E2E cần PostgreSQL và `TEST_DATABASE_URL` trỏ tới database riêng trong `apps/api/.env`.
+
+Để dùng Postman, import `tests/postman/BrewLiteA2.postman_collection.json` và `tests/postman/BrewLiteA2.postman_environment.json`. Hướng dẫn đầy đủ và lệnh Newman nằm trong [postman/README.md](postman/README.md).

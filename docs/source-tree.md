@@ -1,5 +1,19 @@
 # Cây file chức năng
 
+Repo được tổ chức theo các thư mục chính:
+
+```text
+.github/                 Workflow GitHub
+apps/api/                Backend, Prisma, unit test và E2E của API
+apps/web/                Frontend và test của web
+docs/                    Tài liệu dự án
+scripts/docker/          Khởi tạo PostgreSQL qua Docker
+scripts/postman/         Script khởi động API test và tạo collection
+tests/postman/           Postman collection/environment
+```
+
+File `docker-compose.yml` ở root chạy toàn bộ ứng dụng. Bộ test riêng của từng app nằm cạnh mã nguồn để tiếp tục dùng cấu hình và dependencies của app; `tests/` ở root chứa bộ kiểm thử API bằng Postman. Xem [scripts](../scripts/README.md) và [tests](../tests/README.md).
+
 Các file nguồn dưới đây đã được điền nội dung từ `doanreal/brewlite`: `frontend/src` chuyển sang `apps/web/src`, `backend/src` chuyển sang `apps/api/src`. Các file `*.spec.ts` đã có unit test; test frontend và test API tích hợp nằm trong thư mục `test` của từng app.
 
 Ảnh/icon được chép vào `apps/web/public` và `apps/web/src/app/favicon.ico`. Prisma schema, migrations và seed nằm trong `apps/api/prisma`; Prisma Client được tạo bằng `npm.cmd run prisma:generate` tại `apps/api`, không đưa output generated vào Git.

@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "ebe7568b-1541-4c6a-af1d-0f394f0a95e7",
     "name": "BrewLite A2 — Kiểm thử API",
-    "description": "Import collection và environment trong thư mục postman. Chạy npm run postman:dev ở apps/api, chọn environment BrewLite A2 — Postman Demo, rồi chạy folder 01. Token và ID tự lưu vào environment. Folder 02–08 dùng gọi request riêng. Đọc postman/README.md để xem tài khoản, thứ tự và cách dùng API dev :4000.",
+    "description": "Import collection và environment trong thư mục tests/postman. Chạy npm run postman:dev ở apps/api, chọn environment BrewLite A2 — Postman Demo, rồi chạy folder 01. Token và ID tự lưu vào environment. Folder 02–08 dùng gọi request riêng. Đọc tests/postman/README.md để xem tài khoản, thứ tự và cách dùng API dev :4000.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {

@@ -7,15 +7,38 @@
 
 A2 giữ package/lockfile, cấu hình local và volume database riêng `brewlite-a2_pgdata`.
 
+## Cấu trúc repo
+
+```text
+brewliteA2/
+├── .github/               # Workflow và cấu hình GitHub
+├── apps/
+│   ├── api/               # NestJS, Prisma và test riêng của API
+│   └── web/               # Next.js và test riêng của frontend
+├── docs/                  # Tài liệu, sơ đồ, yêu cầu và cấu hình môi trường
+├── scripts/
+│   ├── docker/            # Script khởi tạo PostgreSQL cho Docker
+│   └── postman/           # Khởi động API test và tạo collection
+├── tests/
+│   └── postman/           # Collection, environment và hướng dẫn test API
+├── .env.example
+├── .gitattributes
+├── .gitignore
+├── README.md
+└── docker-compose.yml
+```
+
+`.gitattributes` giữ quy tắc xuống dòng cho Git/Docker. Các file `.env`, dependencies, cache và bản sao local được Git bỏ qua. Xem [scripts](scripts/README.md) và [tests](tests/README.md) để chạy các công cụ tương ứng.
+
 ## Chạy frontend và backend cùng lúc bằng Docker
 
 Mở Docker Desktop. Khi `.env` ở root và `apps/api/.env` đã được chuẩn bị, tại root repo chạy:
 
 ```powershell
-docker compose up -d --build --wait
+docker compose up --build -d
 ```
 
-Lệnh chạy PostgreSQL, tự áp dụng migration và seed dữ liệu mẫu, sau đó mở backend và frontend:
+Lệnh chạy nền PostgreSQL, tự áp dụng migration và seed dữ liệu mẫu, sau đó mở backend và frontend. Đợi các dịch vụ khởi động xong rồi truy cập:
 
 - Frontend: http://localhost:3000
 - Swagger: http://localhost:4000/api/docs
@@ -111,7 +134,7 @@ Tại root repo, chạy profile test riêng:
 npm.cmd --prefix apps/api run postman:dev
 ```
 
-API test chạy tại `http://localhost:4001/api`, dùng `TEST_DATABASE_URL`, OTP `123456` và thanh toán giả lập. Import hai file JSON trong [postman/](postman/README.md), chọn environment **BrewLite A2 — Postman Demo** rồi chạy folder **01. Luồng test tự động**. Bộ mẫu tự lưu JWT/ID và kiểm tra luồng đăng ký, đăng nhập bằng SĐT/email, đặt món, thanh toán, barista xử lý đơn và quản lý tạo nhân viên. Xem [hướng dẫn Postman](postman/README.md) để gọi riêng đủ 43 endpoint.
+API test chạy tại `http://localhost:4001/api`, dùng `TEST_DATABASE_URL`, OTP `123456` và thanh toán giả lập. Import hai file JSON trong [tests/postman/](tests/postman/README.md), chọn environment **BrewLite A2 — Postman Demo** rồi chạy folder **01. Luồng test tự động**. Bộ mẫu tự lưu JWT/ID và kiểm tra luồng đăng ký, đăng nhập bằng SĐT/email, đặt món, thanh toán, barista xử lý đơn và quản lý tạo nhân viên. Xem [hướng dẫn Postman](tests/postman/README.md) để gọi riêng đủ 43 endpoint.
 
 ## Kiểm tra
 

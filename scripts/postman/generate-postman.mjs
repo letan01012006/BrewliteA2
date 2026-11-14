@@ -3,8 +3,8 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
-const outputDirectory = resolve(root, 'postman');
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const outputDirectory = resolve(root, 'tests/postman');
 const sourceUrl = (process.argv[2] || 'http://127.0.0.1:4001').replace(
   /\/$/,
   '',
@@ -643,7 +643,7 @@ const collection = {
     _postman_id: id('collection'),
     name: 'BrewLite A2 — Kiểm thử API',
     description:
-      'Import collection và environment trong thư mục postman. Chạy npm run postman:dev ở apps/api, chọn environment BrewLite A2 — Postman Demo, rồi chạy folder 01. Token và ID tự lưu vào environment. Folder 02–08 dùng gọi request riêng. Đọc postman/README.md để xem tài khoản, thứ tự và cách dùng API dev :4000.',
+      'Import collection và environment trong thư mục tests/postman. Chạy npm run postman:dev ở apps/api, chọn environment BrewLite A2 — Postman Demo, rồi chạy folder 01. Token và ID tự lưu vào environment. Folder 02–08 dùng gọi request riêng. Đọc tests/postman/README.md để xem tài khoản, thứ tự và cách dùng API dev :4000.',
     schema:
       'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
   },

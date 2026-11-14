@@ -4,9 +4,14 @@ import { createServer } from 'node:net';
 import { spawn } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse } from 'dotenv';
+import { createRequire } from 'node:module';
 
-const apiDirectory = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const apiDirectory = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../apps/api',
+);
+const require = createRequire(resolve(apiDirectory, 'package.json'));
+const { parse } = require('dotenv');
 const settings = {
   ...parse(readFileSync(resolve(apiDirectory, '.env'))),
   ...process.env,

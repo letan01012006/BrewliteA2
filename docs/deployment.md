@@ -22,7 +22,7 @@ File `.env` ở root cấu hình tài khoản database và các cổng được 
 ## Chạy cả frontend, backend và database
 
 ```powershell
-docker compose up -d --build --wait
+docker compose up --build -d
 ```
 
 | Service | Vai trò | Địa chỉ trên máy |
@@ -33,6 +33,8 @@ docker compose up -d --build --wait
 | `web` | Next.js standalone | http://localhost:3000 |
 
 Backend chờ database healthy và `api-init` thành công. Frontend chờ backend healthy. Đây là các điều kiện [`depends_on` của Compose](https://docs.docker.com/compose/how-tos/startup-order/). Seed dùng upsert và không xóa database hiện có.
+
+Script tạo database test nằm ở `scripts/docker/postgres/init/01-create-test-db.sql`, được mount chỉ đọc vào `/docker-entrypoint-initdb.d`. PostgreSQL chỉ chạy script khởi tạo khi volume còn trống; volume hiện có được giữ nguyên khi sắp xếp lại repo.
 
 `api`/`api-init` dùng chung image. Image API chứa Prisma CLI và tsx để thực hiện migration/seed. API chạy JavaScript đã compile; `NODE_ENV` được nạp từ `apps/api/.env` và được giữ là `development` trong cấu hình mẫu để dùng OTP local. Frontend chạy bản production bằng [Next.js standalone](https://nextjs.org/docs/app/api-reference/config/next-config-js/output).
 
@@ -55,7 +57,7 @@ docker compose logs -f api web
 Sau khi sửa code, Dockerfile hoặc `.env`, chạy lại:
 
 ```powershell
-docker compose up -d --build --wait
+docker compose up --build -d
 ```
 
 Không có bind mount/hot reload trong cấu hình này. Muốn phát triển với hot reload, dùng cách chạy Node.js trong [README](../README.md) và chỉ chạy database bằng Docker.
@@ -66,7 +68,7 @@ Không có bind mount/hot reload trong cấu hình này. Muốn phát triển v�
 
 ```powershell
 docker compose stop
-docker compose up -d --wait
+docker compose up -d
 ```
 
 Volume database được giữ lại khi dừng hoặc tạo lại container. Lệnh khởi động ở trên dùng lại image đã build; thêm `--build` khi code thay đổi.

@@ -2,7 +2,7 @@
 
 ## Khởi động API test
 
-Sau khi đã cài dependencies và chuẩn bị `apps/api/.env` theo [README chính](../README.md), mở terminal tại root repo:
+Sau khi đã cài dependencies và chuẩn bị `apps/api/.env` theo [README chính](../../README.md), mở terminal tại root repo:
 
 ```powershell
 docker compose up -d --wait db
@@ -56,7 +56,7 @@ Nếu dùng API dev đang chạy tại cổng 4000, tạo bản sao environment 
 Giữ API test đang chạy, mở terminal thứ hai tại root:
 
 ```powershell
-npm.cmd exec --yes --package=newman@6.2.3 -- newman run postman/BrewLiteA2.postman_collection.json -e postman/BrewLiteA2.postman_environment.json --folder "01. Luồng test tự động" --bail
+npm.cmd exec --yes --package=newman@6.2.3 -- newman run tests/postman/BrewLiteA2.postman_collection.json -e tests/postman/BrewLiteA2.postman_environment.json --folder "01. Luồng test tự động" --bail
 ```
 
 Lệnh tải Newman tạm thời, không thêm dependency vào ứng dụng. Đã kiểm tra local: **31 request / 53 assertions đạt**.
@@ -69,4 +69,4 @@ Giữ API test chạy rồi thực hiện:
 npm.cmd --prefix apps/api run postman:generate
 ```
 
-Script đối chiếu endpoint với `/api/docs-json`; nếu thêm hoặc xóa route, cập nhật ví dụ trong `apps/api/scripts/generate-postman.mjs` theo lỗi được báo rồi chạy lại. Lệnh tạo lại hai file import với token trống và biến mặc định. Nếu dùng cổng khác, truyền URL API gốc, ví dụ `npm.cmd --prefix apps/api run postman:generate -- http://localhost:4101`, và chỉnh `base_url` tương ứng trong Postman.
+Script đối chiếu endpoint với `/api/docs-json`; nếu thêm hoặc xóa route, cập nhật ví dụ trong `scripts/postman/generate-postman.mjs` theo lỗi được báo rồi chạy lại. Lệnh tạo lại hai file import với token trống và biến mặc định. Nếu dùng cổng khác, truyền URL API gốc, ví dụ `npm.cmd --prefix apps/api run postman:generate -- http://localhost:4101`, và chỉnh `base_url` tương ứng trong Postman.

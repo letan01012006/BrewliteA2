@@ -46,14 +46,14 @@ Mã nguồn frontend/backend, Prisma schema, migrations và seed đã được c
 
 ## Docker Compose
 
-`docker compose up -d --build --wait` chạy `db`, bước migration/seed `api-init`, `api` và `web`. API nạp cấu hình từ `apps/api/.env`; Compose ghi đè `PORT=4000` và `DATABASE_URL` sang database ở `db:5432`, lấy tài khoản từ `.env` root. File local không bị sửa.
+`docker compose up --build -d` chạy `db`, bước migration/seed `api-init`, `api` và `web`. API nạp cấu hình từ `apps/api/.env`; Compose ghi đè `PORT=4000` và `DATABASE_URL` sang database ở `db:5432`, lấy tài khoản từ `.env` root. File local không bị sửa.
 
 `WEB_PORT` (mặc định 3000), `API_PORT` (4000), `POSTGRES_PORT` (5432) trong `.env` root chỉ điều khiển cổng trên máy. Frontend dùng `BACKEND_API_URL=http://api:4000/api` lúc build và chạy trong Docker, độc lập với `apps/web/.env.local`. Hướng dẫn đầy đủ nằm trong [deployment.md](deployment.md).
 
 ## Profile Postman
 
-Chạy `npm.cmd --prefix apps/api run postman:dev` tại root để mở API test ở cổng 4001. Script `apps/api/scripts/start-postman.mjs` đọc `.env`, kiểm tra hai database khác nhau, generate Prisma, áp dụng migrations và seed vào `TEST_DATABASE_URL` trước khi chạy NestJS.
+Chạy `npm.cmd --prefix apps/api run postman:dev` tại root để mở API test ở cổng 4001. Script `scripts/postman/start-postman.mjs` đọc `.env`, kiểm tra hai database khác nhau, generate Prisma, áp dụng migrations và seed vào `TEST_DATABASE_URL` trước khi chạy NestJS.
 
 Các giá trị chỉ ghi đè trong tiến trình này: `DATABASE_URL` lấy từ `TEST_DATABASE_URL`, `NODE_ENV=development`, SMS local, `AUTH_OTP_DEMO=true`, `PAYMENT_MOCK_ENABLED=true` và seed quản lý demo. JWT/OTP dùng secret ngẫu nhiên mới mỗi phiên; khóa eSMS và VNPAY được để trống trong profile. File `.env` và API dev cổng 4000 giữ cấu hình hiện có.
 
-Có thể đổi cổng bằng biến tiến trình `POSTMAN_PORT`; khi đó cập nhật `base_url` trong environment Postman. Database test dùng schema `public`; các bộ E2E của dự án tạo schema riêng. Xem [postman/README.md](../postman/README.md) để import và chạy collection.
+Có thể đổi cổng bằng biến tiến trình `POSTMAN_PORT`; khi đó cập nhật `base_url` trong environment Postman. Database test dùng schema `public`; các bộ E2E của dự án tạo schema riêng. Xem [tests/postman/README.md](../tests/postman/README.md) để import và chạy collection.
