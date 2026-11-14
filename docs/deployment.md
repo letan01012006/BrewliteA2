@@ -60,7 +60,7 @@ Sau khi sửa code, Dockerfile hoặc `.env`, chạy lại:
 docker compose up --build -d
 ```
 
-Không có bind mount/hot reload trong cấu hình này. Muốn phát triển với hot reload, dùng cách chạy Node.js trong [README](../README.md) và chỉ chạy database bằng Docker.
+Không có bind mount/hot reload trong cấu hình này. Muốn phát triển với hot reload, xem [hướng dẫn chạy bằng Node.js](development.md) và chỉ chạy database bằng Docker.
 
 Đổi `WEB_PORT`, `API_PORT` hoặc `POSTGRES_PORT` trong `.env` ở root khi cần đổi cổng trên máy; cổng trong mạng Docker giữ nguyên. Khi đổi cổng web, cập nhật `VNPAY_RETURN_URL` trong `apps/api/.env` nếu sử dụng VNPAY. URL database của các tiến trình Node.js chạy ngoài Docker cũng cần khớp `POSTGRES_PORT`.
 
