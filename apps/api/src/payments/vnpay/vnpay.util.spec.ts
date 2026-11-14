@@ -95,6 +95,24 @@ describe('VNPAY utility functions', () => {
     expect(verifyVnpaySignature(params, 'WRONG_SECRET')).toBe(false);
   });
 
+  it('keeps numeric and boolean scalar parameters in signature data', () => {
+    expect(buildVnpaySignData({ amount: 0, enabled: false }).signData).toBe(
+      'amount=0&enabled=false',
+    );
+  });
+
+  it.each([{}, ['00'], { toString: () => '00' }])(
+    'rejects structured callback parameters without throwing from verification: %j',
+    (value) => {
+      const params = {
+        vnp_ResponseCode: value,
+        vnp_SecureHash: '0'.repeat(128),
+      };
+      expect(() => buildVnpaySignData(params)).toThrow(TypeError);
+      expect(verifyVnpaySignature(params, sampleConfig.hashSecret)).toBe(false);
+    },
+  );
+
   it('builds complete payment URL with signature', () => {
     const createDate = new Date('2026-11-05T01:00:00Z');
     const { paymentUrl, txnRef, vnpCreateDate, expiresAt } = buildPaymentUrl(

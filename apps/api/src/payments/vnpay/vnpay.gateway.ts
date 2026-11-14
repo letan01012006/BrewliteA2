@@ -5,6 +5,7 @@ import {
   buildQuerydrPayload,
   buildRefundPayload,
   verifyVnpaySignature,
+  vnpayString,
   type VnpayConfig,
 } from './vnpay.util.js';
 
@@ -177,9 +178,9 @@ export class DefaultVnpayGateway extends VnpayGateway {
       }
 
       const data = (await response.json()) as Record<string, unknown>;
-      const responseCode = String(data['vnp_ResponseCode'] ?? '99');
+      const responseCode = vnpayString(data['vnp_ResponseCode'] ?? '99');
       const transactionStatus = data['vnp_TransactionStatus']
-        ? String(data['vnp_TransactionStatus'])
+        ? vnpayString(data['vnp_TransactionStatus'])
         : undefined;
 
       const isSuccess = responseCode === '00' && transactionStatus === '00';
@@ -193,20 +194,24 @@ export class DefaultVnpayGateway extends VnpayGateway {
             ? data['vnp_TransactionType']
             : undefined,
         transactionNo: data['vnp_TransactionNo']
-          ? String(data['vnp_TransactionNo'])
+          ? vnpayString(data['vnp_TransactionNo'])
           : undefined,
         bankCode: data['vnp_BankCode']
-          ? String(data['vnp_BankCode'])
+          ? vnpayString(data['vnp_BankCode'])
           : undefined,
         cardType: data['vnp_CardType']
-          ? String(data['vnp_CardType'])
+          ? vnpayString(data['vnp_CardType'])
           : undefined,
-        payDate: data['vnp_PayDate'] ? String(data['vnp_PayDate']) : undefined,
+        payDate: data['vnp_PayDate']
+          ? vnpayString(data['vnp_PayDate'])
+          : undefined,
         amount: data['vnp_Amount']
           ? Number(data['vnp_Amount']) / 100
           : undefined,
         success: isSuccess,
-        message: data['vnp_Message'] ? String(data['vnp_Message']) : undefined,
+        message: data['vnp_Message']
+          ? vnpayString(data['vnp_Message'])
+          : undefined,
       };
     } catch (error) {
       return {
@@ -258,21 +263,25 @@ export class DefaultVnpayGateway extends VnpayGateway {
       }
 
       const data = (await response.json()) as Record<string, unknown>;
-      const responseCode = String(data['vnp_ResponseCode'] ?? '99');
-      const transactionStatus = String(data['vnp_TransactionStatus'] ?? '');
+      const responseCode = vnpayString(data['vnp_ResponseCode'] ?? '99');
+      const transactionStatus = vnpayString(
+        data['vnp_TransactionStatus'] ?? '',
+      );
       const isSuccess = responseCode === '00' && transactionStatus === '00';
 
       return {
         raw: data,
         responseCode,
         refundNo: data['vnp_TransactionNo']
-          ? String(data['vnp_TransactionNo'])
+          ? vnpayString(data['vnp_TransactionNo'])
           : undefined,
         success: isSuccess,
         pending: responseCode === '00' && !isSuccess,
         failureReason: isSuccess
           ? undefined
-          : String(data['vnp_Message'] ?? `Mã lỗi phản hồi: ${responseCode}`),
+          : vnpayString(
+              data['vnp_Message'] ?? `Mã lỗi phản hồi: ${responseCode}`,
+            ),
       };
     } catch (error) {
       return {

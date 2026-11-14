@@ -59,6 +59,24 @@ describe('VNPAY refund responses', () => {
         VNPAY_HASH_SECRET: 'merchant-secret-12345678',
       }),
     );
+  it('rejects a structured transaction status instead of confirming payment', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          vnp_ResponseCode: '00',
+          vnp_TransactionStatus: { status: '00' },
+        }),
+      }),
+    );
+    expect(
+      await gateway().queryTransaction({
+        txnRef: 'TXN',
+        transactionDate: '20261111100000',
+      }),
+    ).toMatchObject({ responseCode: '99', success: false });
+  });
   it.each(['', '05', '06', '00'])(
     'separates accepted requests from settled refunds (%s)',
     async (status) => {
