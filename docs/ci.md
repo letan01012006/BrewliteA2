@@ -24,7 +24,7 @@ PR triển khai: [#10](https://github.com/letan01012006/BrewliteA2/pull/10).
 | [Run #1](https://github.com/letan01012006/BrewliteA2/actions/runs/43614827866) | `2cf6f1f` | API fail tại lint với 24 cảnh báo ép dữ liệu VNPAY thành chuỗi; web pass. PR bị chặn merge. |
 | [Run #2 — pass](https://github.com/letan01012006/BrewliteA2/actions/runs/43615113298) | `6caad2f` | API và web đều pass lint, unit test và build. Bản sửa xử lý rõ kiểu giá trị VNPAY, giữ `--deny-warnings` và thêm test cho phản hồi sai kiểu. |
 
-Trích log gốc được lưu trong repo: [fail.txt](evidence/ci/fail.txt) và [pass.txt](evidence/ci/pass.txt). Mỗi file ghi run URL, commit và kết quả job tương ứng để đối chiếu trên GitHub.
+Log các job được xem trực tiếp tại hai lượt chạy GitHub Actions ở trên.
 
 Kiểm tra local của bản sửa: lint/build cả hai app đạt; API 87 unit test, frontend 164 test và 57 E2E thanh toán VNPAY đạt. CI hiện chạy lint/unit test/build; E2E dùng database test riêng và được chạy local trong lần kiểm tra này.
 
