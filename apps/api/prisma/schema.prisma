@@ -1,8 +1,549 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client"
+  output     = "../src/generated/prisma"
+  // Use the existing PostgreSQL adapter without locking a native DLL on Windows.
+  engineType = "client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// =========================
+// ENUMS
+// =========================
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PREPARING
+  READY
+  COMPLETED
+  PAYMENT_FAILED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  WALLET
+  CARD
+  VNPAY
+  POINTS
+}
+
+enum PaymentStatus {
+  PROCESSING
+  SUCCESS
+  FAILED
+  EXPIRED
+  CANCELLED
+  NEEDS_REFUND
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+enum LoyaltyTransactionType {
+  EARN
+  REDEEM
+  REFUND
+  ADJUSTMENT
+  REVOKE
+}
+
+enum PaymentEventSource {
+  CREATE
+  IPN
+  RETURN
+  QUERY
+  REFUND
+}
+
+enum PaymentEventResult {
+  RECEIVED
+  ACCEPTED
+  REJECTED
+  ERROR
+  DUPLICATE
+}
+
+enum Size {
+  S
+  M
+  L
+}
+
+enum Role {
+  CUSTOMER
+  BARISTA
+  MANAGER
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+enum IngredientUnit {
+  GRAM
+  MILLILITRE
+  PIECE
+}
+
+enum InventoryReservationStatus {
+  HELD
+  CONSUMED
+  RELEASED
+}
+
+enum InventoryMovementKind {
+  RECEIPT
+  ADJUSTMENT
+  HOLD
+  RELEASE
+  CONSUME
+}
+
+// =========================
+// PRODUCT
+// =========================
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  price       Int
+  imageUrl    String
+  category    String
+  // Legacy finished-drink stock. Retire only AFTER the application switches
+  // to ingredient reservations. No automatic synchronization is installed.
+  stock       Int      @default(0)
+  version     Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  orderItems OrderItem[]
+  toppings   Topping[]
+  recipes    ProductRecipe[]
+
+  @@index([category])
+}
+
+// =========================
+// TOPPING
+// =========================
+
+model Topping {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  price    Int
+  isActive Boolean   @default(true)
+  products Product[]
+
+  // Prepared topping consumes this quantity in the ingredient's base unit.
+  // Both NULL means not configured yet (legacy toppings remain compatible).
+  ingredientId       Int?
+  quantityPerServing Decimal?    @db.Decimal(18, 3)
+  ingredient         Ingredient? @relation(fields: [ingredientId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([ingredientId])
+}
+
+// =========================
+// USER
+// =========================
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String?  @unique
+  phone         String?  @unique
+  isPhoneVerified Boolean @default(false)
+  welcomePointsGrantedAt DateTime?
+  otpHash       String?
+  otpExpiresAt  DateTime?
+  otpSentAt     DateTime?
+  otpAttempts   Int      @default(0)
+  passwordHash  String
+  fullName      String
+  role          Role     @default(CUSTOMER)
+  loyaltyPoints Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  orders              Order[]
+  loyaltyTransactions LoyaltyTransaction[]
+  inventoryMovements  InventoryMovement[]
+}
+
+// =========================
+// ORDER
+// =========================
+
+model Order {
+  id     Int         @id @default(autoincrement())
+  userId Int
+  status OrderStatus @default(PENDING)
+  creationKey         String?
+  creationRequestHash String?
+
+  subtotal       Int
+  discountAmount Int @default(0)
+  total          Int
+
+  promoCode    String?
+  promoReleasedAt DateTime?
+  pointsEarned Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id])
+  promotion PromoCode? @relation(fields: [promoCode], references: [code])
+
+  items                OrderItem[]
+  payments             Payment[]
+  loyaltyTransactions  LoyaltyTransaction[]
+  inventoryReservation InventoryReservation?
+  inventoryMovements   InventoryMovement[]
+
+  @@unique([id, userId])
+  @@unique([userId, creationKey])
+  @@unique([id, total])
+  @@index([userId, createdAt])
+  @@index([status])
+  @@index([status, createdAt])
+}
+
+// =========================
+// ORDER ITEM
+// =========================
+
+model OrderItem {
+  id Int @id @default(autoincrement())
+
+  orderId   Int
+  productId Int
+
+  productName String
+  size        Size
+
+  // Snapshot topping tại thời điểm đặt hàng
+  // Ví dụ: [{ "id": 1, "name": "Trân châu", "price": 5000 }]
+  toppings Json @default("[]")
+
+  // SQL NULL identifies orders still handled by the legacy stock flow.
+  // Future backend must freeze exact ingredient IDs, units, amounts and versions.
+  recipeSnapshot Json?
+
+  unitPrice Int
+  qty       Int
+  lineTotal Int
+
+  note String?
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// =========================
+// PAYMENT
+// =========================
+
+model Payment {
+  id Int @id @default(autoincrement())
+
+  orderId Int
+
+  idempotencyKey String @unique
+  requestHash    String
+
+  amount Int
+  method PaymentMethod
+  status PaymentStatus @default(PROCESSING)
+
+  providerRef   String?
+  failureReason String?
+
+  responseSnapshot Json?
+
+  // Whole-order value in VND; pointsUsed is a positive count, never VND.
+  pointsUsed   Int @default(0)
+  // Legacy monetary snapshot, preserved; new flows use amount, not split tender.
+  pointsAmount Int @default(0)
+
+  gatewayTxnRef            String?   @unique
+  paymentUrl               String?
+  gatewayCreatedAt         DateTime?
+  // Exact vnp_CreateDate sent to VNPAY (Asia/Ho_Chi_Minh), needed for querydr.
+  vnpCreateDate            String?   @db.VarChar(14)
+  expiresAt                DateTime?
+  gatewayBankCode          String?
+  bankTransactionNo        String?
+  cardType                 String?
+  gatewayResponseCode      String?
+  gatewayTransactionStatus String?
+  vnpPayDate               String?   @db.VarChar(14)
+  paidAt                   DateTime? @map("gatewayPayDate")
+  ipnProcessedAt           DateTime?
+  // Legacy column only. New VNPAY writes use providerRef.
+  gatewayTransactionNo     String?
+
+  // Settled refund evidence only. A cancellation/request is not a settlement.
+  // PaymentRefund records the request lifecycle; retain the original response.
+  refundedAt     DateTime?
+  refundedAmount Int       @default(0)
+  refundRef      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order               Order                @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  events              PaymentWebhookLog[]
+  refunds             PaymentRefund[]
+  loyaltyTransactions LoyaltyTransaction[]
+
+  @@unique([id, orderId])
+  @@unique([id, amount])
+  @@unique([method, providerRef])
+  @@index([orderId, status])
+  @@index([status, expiresAt])
+}
+
+// One row per delivery/attempt. Duplicate IPNs are still auditable.
+model PaymentWebhookLog {
+  id                   Int                @id @default(autoincrement())
+  paymentId            Int?
+  source               PaymentEventSource @default(IPN)
+  result               PaymentEventResult @default(RECEIVED)
+  message              String?
+  // Legacy name; only sanitized, allowlisted content may be written.
+  rawPayload           Json
+  gatewayTxnRef        String?
+  gatewayTransactionNo String?
+  amount               Int?
+  responseCode         String?
+  signatureValid       Boolean?
+  processed            Boolean            @default(false)
+  // Correlation only; business deduplication belongs to Payment/loyalty keys.
+  requestId            String?
+  occurredAt           DateTime           @default(now())
+  createdAt            DateTime           @default(now())
+  payment              Payment?           @relation(fields: [paymentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([paymentId, createdAt])
+  @@index([source, createdAt])
+  @@index([requestId])
+  @@index([gatewayTxnRef, createdAt])
+  @@index([signatureValid, processed])
+}
+
+model PaymentRefund {
+  id                  Int          @id @default(autoincrement())
+  paymentId           Int          @unique
+  // Requested VND amount; Payment.refundedAmount is the settled amount.
+  amount              Int
+  status              RefundStatus @default(PENDING)
+  idempotencyKey      String       @unique
+  gatewayRefundNo     String?
+  gatewayResponseCode String?
+  failureReason       String?
+  confirmedAt         DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  payment             Payment      @relation(fields: [paymentId, amount], references: [id, amount], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([paymentId, status])
+  @@index([status, createdAt])
+}
+
+// =========================
+// PROMO CODE
+// =========================
+
+model PromoCode {
+  id Int @id @default(autoincrement())
+
+  code String       @unique
+  type DiscountType
+
+  // PERCENT: ví dụ 10 = 10%
+  // FIXED: ví dụ 20000 = 20.000 VND
+  value Int
+
+  minOrderValue Int  @default(0)
+  maxDiscount   Int?
+
+  startsAt  DateTime
+  expiresAt DateTime
+
+  usageLimit Int?
+  usedCount  Int  @default(0)
+
+  isActive Boolean @default(true)
+
+  orders Order[]
+}
+
+// =========================
+// LOYALTY TRANSACTION
+// =========================
+
+model LoyaltyTransaction {
+  id Int @id @default(autoincrement())
+
+  userId               Int
+  orderId              Int
+  paymentId            Int?
+  type                 LoyaltyTransactionType @default(EARN)
+  eventKey             String                 @unique
+  // Retained legacy snapshot; never the authoritative points balance.
+  pointsAmount         Int                    @default(0)
+  relatedTransactionId Int?
+
+  points Int
+
+  // Có giá trị khi điểm đã bị thu hồi (hủy đơn PAID). `points` giữ nguyên số điểm ban đầu.
+  reversedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  user               User                 @relation(fields: [userId], references: [id])
+  order              Order                @relation(fields: [orderId, userId], references: [id, userId], onDelete: Restrict, onUpdate: Restrict)
+  payment            Payment?             @relation(fields: [paymentId, orderId], references: [id, orderId], onDelete: Restrict, onUpdate: Restrict)
+  relatedTransaction LoyaltyTransaction?  @relation("PointReversal", fields: [relatedTransactionId, orderId, userId], references: [id, orderId, userId], onDelete: Restrict, onUpdate: Restrict)
+  childTransactions  LoyaltyTransaction[] @relation("PointReversal")
+
+  @@unique([paymentId, type])
+  @@unique([id, orderId, userId])
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@index([orderId, createdAt])
+  @@index([paymentId])
+  @@index([relatedTransactionId, orderId, userId])
+  @@index([orderId])
+}
+
+// =========================
+// INGREDIENT INVENTORY (database foundation only; no automatic stock mutation)
+// =========================
+
+model Ingredient {
+  id               Int            @id @default(autoincrement())
+  code             String         @unique
+  name             String         @unique
+  unit             IngredientUnit
+  stockQuantity    Decimal        @default(0) @db.Decimal(18, 3)
+  reservedQuantity Decimal        @default(0) @db.Decimal(18, 3)
+  version          Int            @default(0)
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  productRecipeIngredients ProductRecipeIngredient[]
+  reservationItems         InventoryReservationItem[]
+  movements                InventoryMovement[]
+  toppings                 Topping[]
+
+  // Child rows bind their unit to this key, enabling PIECE checks without triggers.
+  @@unique([id, unit])
+}
+
+model ProductRecipe {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  size      Size
+  version   Int      @default(0)
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product     Product                   @relation(fields: [productId], references: [id], onDelete: Restrict)
+  ingredients ProductRecipeIngredient[]
+
+  @@unique([productId, size])
+}
+
+model ProductRecipeIngredient {
+  id           Int            @id @default(autoincrement())
+  recipeId     Int
+  ingredientId Int
+  unit         IngredientUnit
+  quantity     Decimal        @db.Decimal(18, 3)
+
+  recipe     ProductRecipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient Ingredient    @relation(fields: [ingredientId, unit], references: [id, unit], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([recipeId, ingredientId])
+  @@index([ingredientId, unit])
+}
+
+model InventoryReservation {
+  id            Int                        @id @default(autoincrement())
+  orderId       Int                        @unique
+  eventKey      String                     @unique
+  status        InventoryReservationStatus @default(HELD)
+  version       Int                        @default(0)
+  createdAt     DateTime                   @default(now())
+  updatedAt     DateTime                   @updatedAt
+  expiresAt     DateTime?
+  consumedAt    DateTime?
+  releasedAt    DateTime?
+  releaseReason String?
+
+  order     Order                      @relation(fields: [orderId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  items     InventoryReservationItem[]
+  movements InventoryMovement[]
+
+  @@unique([id, orderId])
+  @@index([status, expiresAt])
+}
+
+model InventoryReservationItem {
+  id            Int            @id @default(autoincrement())
+  reservationId Int
+  ingredientId  Int
+  unit          IngredientUnit
+  quantity      Decimal        @db.Decimal(18, 3)
+
+  reservation InventoryReservation @relation(fields: [reservationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  ingredient  Ingredient           @relation(fields: [ingredientId, unit], references: [id, unit], onDelete: Restrict, onUpdate: Restrict)
+  movements   InventoryMovement[]
+
+  @@unique([reservationId, ingredientId])
+  @@unique([reservationId, ingredientId, unit])
+  @@index([ingredientId, unit])
+}
+
+model InventoryMovement {
+  id            Int                   @id @default(autoincrement())
+  eventKey      String                @unique
+  kind          InventoryMovementKind
+  ingredientId  Int
+  unit          IngredientUnit
+  stockDelta    Decimal               @db.Decimal(18, 3)
+  reservedDelta Decimal               @db.Decimal(18, 3)
+  reservationId Int?
+  // Reservation.version at the start of this hold/release cycle.
+  reservationVersion Int @default(0)
+  orderId       Int?
+  actorId       Int?
+  reason        String?
+  createdAt     DateTime              @default(now())
+
+  ingredient      Ingredient                @relation(fields: [ingredientId, unit], references: [id, unit], onDelete: Restrict, onUpdate: Restrict)
+  reservation     InventoryReservation?     @relation(fields: [reservationId, orderId], references: [id, orderId], onDelete: Restrict, onUpdate: Restrict)
+  reservationItem InventoryReservationItem? @relation(fields: [reservationId, ingredientId, unit], references: [reservationId, ingredientId, unit], onDelete: Restrict, onUpdate: Restrict)
+  order           Order?                    @relation(fields: [orderId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  actor           User?                     @relation(fields: [actorId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([reservationId, ingredientId, kind, reservationVersion], map: "InventoryMovement_reservation_cycle_key")
+  @@index([ingredientId, createdAt])
+  @@index([orderId, createdAt])
+  @@index([actorId])
 }
