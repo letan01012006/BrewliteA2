@@ -31,3 +31,4 @@ Thumbs.db
 /apps/api/src/generated/prisma/*
 !/apps/api/src/generated/prisma/.gitkeep
 .local-backups/
+.vercel/

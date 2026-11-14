@@ -17,6 +17,7 @@ ENV NODE_ENV=production PORT=4000
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --from=build --chown=node:node /app/prisma ./prisma
+COPY --from=build --chown=node:node /app/scripts ./scripts
 COPY --from=build --chown=node:node /app/src/generated/prisma ./src/generated/prisma
 COPY --from=build --chown=node:node /app/prisma.config.ts /app/package.json ./
 USER node

@@ -95,6 +95,7 @@ Một task được đánh dấu **Done** khi:
 
 ## Tài liệu
 
+- [CD và triển khai Vercel / Render](docs/deployment.md)
 - [Task 3.1 — Kiến trúc và ADR](docs/architecture/README.md)
 - [CI và bằng chứng kiểm tra](docs/ci.md)
 - [Kiểm thử](tests/README.md)

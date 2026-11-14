@@ -1,0 +1,48 @@
+# Select this Blueprint path when importing the repository on Render.
+# Free plans are for demos: API sleeps on idle; free Postgres expires.
+services:
+  - type: web
+    name: brewlite-a2-api
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    autoDeployTrigger: "off"
+    dockerContext: ./apps/api
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerCommand: sh scripts/start-cloud.sh
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: brewlite-a2-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OTP_HASH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: AUTH_OTP_DEMO
+        value: "false"
+      - key: AUTH_DEMO_SEED
+        value: "false"
+      - key: SMS_PROVIDER
+        value: esms
+      - key: PAYMENT_MOCK_ENABLED
+        value: "true"
+      - key: TRUST_PROXY
+        value: "true"
+      - key: SEED_DEMO_DATA
+        value: "false"
+
+databases:
+  - name: brewlite-a2-db
+    plan: free
+    region: singapore
+    postgresMajorVersion: "16"
+    databaseName: brewlite
+    user: brewlite
+    ipAllowList: []

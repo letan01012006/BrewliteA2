@@ -142,6 +142,7 @@ Các ADR ghi lại lựa chọn đang áp dụng vào ngày soạn tài liệu, 
 | [006](adr/006-pwa-strategy.md) | Hiện trạng retirement và phương án PWA đề xuất |
 | [007](adr/007-logging-health-configuration.md) | Logging, health check và biến môi trường |
 | [008](adr/008-jwt-otp-rbac.md) | JWT, OTP và phân quyền phía server |
+| [009](adr/009-vercel-render-delivery.md) | Phương án CD Vercel/Render đã cấu hình, chờ nghiệm thu cloud |
 
 | Yêu cầu Task 3.1 | Vị trí đáp ứng |
 | --- | --- |

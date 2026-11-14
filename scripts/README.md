@@ -4,6 +4,7 @@
 | --- | --- |
 | `docker/postgres/init/` | SQL khởi tạo database test khi PostgreSQL tạo volume lần đầu |
 | `postman/` | Khởi động API test và tạo collection từ Swagger |
+| `deploy/` | Blueprint Render, xác nhận CI và kiểm tra API/web sau triển khai |
 
 Các lệnh dưới đây chạy tại root repo. Script Postman tự tìm `apps/api` theo vị trí file, sử dụng dependencies và `.env` của API; không cần thêm package ở root.
 
