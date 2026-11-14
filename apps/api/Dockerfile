@@ -1,4 +1,4 @@
-# Build after the empty NestJS source and Prisma schema are implemented.
+# Prisma Client is generated for Linux before compiling NestJS.
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates \
