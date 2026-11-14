@@ -32,7 +32,7 @@ Các biến được đối chiếu với `.env`, `.env.example` và nơi đọc
 - JWT và OTP có secret ngẫu nhiên riêng của A2, khác nhau và khác secret A1.
 - Cấu hình VNPAY/eSMS, thời hạn token/thanh toán và loyalty được kế thừa từ file local A1 vào `apps/api/.env`. Giá trị truy cập không được đưa vào file mẫu hay tài liệu.
 - `PAYMENT_RECONCILE_INTERVAL_MS` mặc định 60000 và `ORDER_PENDING_EXPIRE_MINUTES` mặc định 15 theo mã cấu hình A1.
-- Các trường demo manager được để trống khi `AUTH_DEMO_SEED=false`. Khi tự triển khai seed demo, điền các trường này trước khi bật cờ.
+- Các trường demo manager được để trống khi `AUTH_DEMO_SEED=false`. Muốn tạo quản lý demo, điền các trường này, bật cờ trong development/test rồi chạy `npm.cmd run prisma:seed` tại `apps/api`.
 
 File mẫu dùng `SMS_PROVIDER=local`, `AUTH_OTP_DEMO=true` và `PAYMENT_MOCK_ENABLED=true`; các khóa provider là giá trị mẫu hoặc để trống. File `.env` local hiện tại giữ các cờ provider theo A1, nên có thể khác file mẫu.
 
@@ -40,4 +40,6 @@ File mẫu dùng `SMS_PROVIDER=local`, `AUTH_OTP_DEMO=true` và `PAYMENT_MOCK_EN
 
 Đã kiểm tra đủ tên biến, định dạng, các trường bắt buộc theo cờ provider, sự tách biệt của secret và việc Git bỏ qua file local. Prisma/database tiếp tục dùng cấu hình A2. Thiết lập này không gửi OTP, không gọi API eSMS/VNPAY và không tạo giao dịch.
 
-Các file chức năng trong `src` vẫn trống. Cấu hình đầy đủ chưa triển khai chức năng auth, thanh toán, callback hoặc seed.
+Mã nguồn frontend/backend, Prisma schema, migrations và seed đã được chuyển từ A1. Đã áp dụng 12 migrations vào database A2, nạp dữ liệu mẫu, kiểm tra health, danh sách sản phẩm và đăng nhập khách/nhân viên thông qua proxy frontend. Hướng dẫn chạy nằm trong [README](../README.md).
+
+`apps/api/vitest.config.e2e.ts` đặt môi trường test riêng với SMS local, secret test và thanh toán giả lập. Cấu hình này chỉ áp dụng cho test; giữ `TEST_DATABASE_URL` riêng với `DATABASE_URL`.

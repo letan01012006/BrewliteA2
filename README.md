@@ -1,142 +1,52 @@
 # BrewliteA2
 
-Bộ khung kỹ thuật theo repo `brewlite-a2`, chuẩn bị cấu hình và dependencies để bạn tự code. Web hướng **mobile-first/PWA**, API dùng NestJS và PostgreSQL.
+Ứng dụng BrewLite dùng Next.js cho frontend, NestJS cho API và PostgreSQL 16. Mã nguồn, ảnh, Prisma schema, migrations, seed và tests được chuyển từ `doanreal/brewlite` vào cấu trúc A2:
 
-Repo đích: [letan01012006/BrewliteA2](https://github.com/letan01012006/BrewliteA2).
+- `frontend/` → `apps/web/`
+- `backend/` → `apps/api/`
 
-## Phạm vi hiện tại
+A2 giữ package/lockfile, cấu hình local và volume database riêng `brewlite-a2_pgdata`.
 
-- `apps/web/src/` có **47 file nguồn trống**, `apps/api/src/` có **91 file nguồn trống**, theo tên và đường dẫn của bản tham chiếu.
-- Entry point, page, component, module, controller, service, DTO, CSS và `*.spec.ts` đã có file nhưng **nội dung đều 0 byte**. Chưa có giao diện, endpoint chạy được (kể cả health check) hoặc logic nghiệp vụ.
-- `apps/api/prisma/schema.prisma` có datasource PostgreSQL và generator client, **chưa có model nghiệp vụ**. `seed.ts` vẫn trống; migrations và generated Prisma client chỉ có `.gitkeep`. Ảnh/icon nhị phân của bản tham chiếu chưa được đưa sang.
-- Compose hiện chỉ chạy PostgreSQL 16. Thêm service web/API khi đã có mã chạy được.
-- **Build, chạy web/API, generate/migrate/seed và test: chưa áp dụng ở bước này.** File test trống chưa phải unit test thực tế. Các script và Dockerfile dành cho sau khi bạn hoàn thành mã nguồn.
+## Chạy trên Windows PowerShell
 
-## Cấu trúc
+Yêu cầu Node.js 24 LTS (tối thiểu 24.15), npm 11 và Docker Desktop đang chạy. Mỗi app có dependencies riêng, không có npm workspace ở root.
 
-```text
-BrewliteA2/
-├── apps/
-│   ├── web/
-│   │   ├── src/                 # 47 file trống; xem docs/source-tree.md
-│   │   ├── public/.gitkeep
-│   │   ├── test/.gitkeep
-│   │   ├── .env.example
-│   │   ├── .dockerignore
-│   │   ├── Dockerfile
-│   │   ├── eslint.config.mjs
-│   │   ├── next.config.ts
-│   │   ├── package.json
-│   │   ├── package-lock.json
-│   │   └── tsconfig.json
-│   └── api/
-│       ├── src/                 # 91 file trống; generated/prisma/.gitkeep
-│       ├── test/.gitkeep
-│       ├── prisma/
-│       │   ├── schema.prisma    # Kết nối PostgreSQL + generator; chưa có model
-│       │   ├── seed.ts          # Trống
-│       │   └── migrations/.gitkeep
-│       ├── .env.example
-│       ├── .dockerignore
-│       ├── .oxlintrc.json
-│       ├── .prettierrc
-│       ├── Dockerfile
-│       ├── nest-cli.json
-│       ├── package.json
-│       ├── package-lock.json
-│       ├── prisma.config.ts
-│       ├── tsconfig.json
-│       ├── tsconfig.build.json
-│       ├── vitest.config.ts
-│       └── vitest.config.e2e.ts
-├── docs/
-│   ├── requirements/.gitkeep
-│   ├── diagrams/.gitkeep
-│   ├── architecture/adr/.gitkeep
-│   ├── traceability-matrix.md
-│   ├── deployment.md
-│   ├── environment.md
-│   └── source-tree.md
-├── tests/.gitkeep
-├── docker/postgres/init/01-create-test-db.sql
-├── .github/workflows/ci.yml.example
-├── docker-compose.yml
-├── .env.example
-├── .gitignore
-├── .gitattributes
-└── README.md
+Nếu dependencies và database đã được chuẩn bị, tại root chạy:
+
+```powershell
+docker compose up -d --wait db
 ```
 
-Danh sách đầy đủ các file chức năng: [docs/source-tree.md](docs/source-tree.md).
+Mở hai terminal tại root repo:
 
-## Bản tham chiếu và phiên bản
+```powershell
+# Terminal backend
+cd apps/api
+npm.cmd run start:dev
+```
 
-Bản tham chiếu trực tiếp: `C:/Users/letro/OneDrive/Desktop/doanreal/brewlite-a2`, repo [letan01012006/brewlite-a2](https://github.com/letan01012006/brewlite-a2), commit `b23a03b2c8e10339247bf3166af34b8958b45933`. Cấu hình này có nguồn gốc từ A1: `frontend/` → `apps/web/`, `backend/` → `apps/api/`. Chỉ lấy đường dẫn file và cấu hình; phần chức năng để bạn tự viết.
+```powershell
+# Terminal frontend
+cd apps/web
+npm.cmd run dev
+```
 
-Mỗi app có package và lockfile npm riêng. Dependencies được ghim theo lockfile bản tham chiếu:
-
-| Công cụ | Phiên bản |
+| Thành phần | Địa chỉ |
 | --- | --- |
-| Next.js / eslint-config-next | 16.4.6 / 16.4.6 |
-| React / React DOM | 19.3.0 / 19.3.0 |
-| React Query / Zustand | 5.104.1 / 5.0.15 |
-| Tailwind CSS / loader Turbopack | 4.3.3 / 4.3.3 |
-| ESLint / TypeScript web | 9.39.5 / 5.9.3 |
-| NestJS common/core/platform-express/testing | 12.1.2 |
-| Nest CLI / schematics | 12.0.8 / 12.0.6 |
-| Prisma CLI / @prisma/client / adapter-pg | 6.19.3 / 6.19.3 / 6.19.3 |
-| TypeScript API | 6.0.3 |
-| Oxlint / oxlint-tsgolint | 1.87.0 / 7.0.2003 |
-| Vitest / coverage-v8 | 4.1.11 / 4.1.11 |
-| @types/node (cả hai app) | 24.19.1 |
+| Frontend | http://localhost:3000 |
+| Menu | http://localhost:3000/menu |
+| Swagger API | http://localhost:4000/api/docs |
+| Health check | http://localhost:4000/api/health |
 
-API có sẵn dependencies Nest Config, JWT, Passport, Swagger, bcrypt, class-validator/class-transformer, Prisma và công cụ test theo bản tham chiếu. Thêm `dotenv` trực tiếp vì Prisma config sử dụng gói này. Không mang các script phụ thuộc vào chức năng cụ thể hoặc script `prepare-dev-env.mjs` không có trong bản tham chiếu sang.
+Frontend proxy `/api/*` tới `BACKEND_API_URL` trong `apps/web/.env.local`, mặc định `http://127.0.0.1:4000/api`.
 
-Hai điều chỉnh: web dùng `@types/node` **24.19.1** thay cho **20.19.43** để khớp runtime; `@prisma/adapter-pg` dùng **6.19.3** thay cho **7.10.0** để đồng bộ với Prisma CLI/client.
+Frontend dùng một giao diện responsive ưu tiên mobile, với tông kem, nâu cà phê và xanh olive cố định. Điện thoại có điều hướng dưới, lưới hai cột và bảng chọn món dạng bottom sheet; tablet dùng ba cột, desktop có header riêng, hero hai cột và lưới bốn cột. Nút và logic đổi sáng/tối đã được gỡ. Luồng đặt món, giỏ hàng, thanh toán và tài khoản dùng chung giữa các kích thước màn hình.
 
-CI bản tham chiếu dùng Node.js **24.22.1**. Repo này dùng **Node.js 24 LTS**, tối thiểu **24.15.0** theo engine của Nest schematics, npm 11 và lockfile v3. Máy thiết lập hiện tại có Node.js **24.18.0**, npm **11.16.0**.
+## Chuẩn bị lần đầu
 
-Next.js đã cấu hình standalone, cache components, partial prefetching, proxy `/api/*` đến `BACKEND_API_URL` và loader Tailwind Turbopack. Bạn tự viết layout, page và CSS nhập Tailwind. Nest CLI có `sourceRoot: "src"`; Oxlint bật kiểm tra kiểu; Prettier có cấu hình riêng. Vitest có preset unit/e2e, môi trường Node và plugin đọc alias TypeScript.
-
-Oxlint cho phép riêng các file trống trong `src/**/*.ts` bằng override `unicorn/no-empty-file: off` để giữ đúng yêu cầu dựng khung. Các quy tắc khác vẫn được giữ; lint đạt ở bước này không có nghĩa các chức năng đã được triển khai.
-
-## Cài dependencies trên Windows PowerShell
-
-Mở PowerShell tại root repo sau khi cài Node.js 24 LTS:
+Tại root repo, chỉ tạo các file local khi chưa tồn tại:
 
 ```powershell
-node --version
-npm.cmd --version
-
-Push-Location apps/web
-npm.cmd ci
-Pop-Location
-
-Push-Location apps/api
-$previousPrismaSkip = $env:PRISMA_SKIP_POSTINSTALL_GENERATE
-$env:PRISMA_SKIP_POSTINSTALL_GENERATE = 'true'
-try {
-    npm.cmd ci
-} finally {
-    $env:PRISMA_SKIP_POSTINSTALL_GENERATE = $previousPrismaSkip
-}
-Pop-Location
-```
-
-Dùng `npm.cmd` để tránh Execution Policy chặn `npm.ps1`; không cần đổi policy của máy. Hai app độc lập, không có npm workspace hay lockfile root. Commit cả hai `package-lock.json`; dùng `npm.cmd ci` để cài lặp lại, chỉ dùng `npm.cmd install` khi chủ động đổi dependency.
-
-Vì Prisma schema chưa có model, bước cài API đặt `PRISMA_SKIP_POSTINSTALL_GENERATE=true` để chỉ cài thư viện. Sau khi tự viết model, dùng `npm.cmd run prisma:generate` để tạo client. Đoạn lệnh trên khôi phục giá trị biến môi trường của phiên PowerShell sau khi cài.
-
-Kiểm tra cài đặt dùng `npm.cmd ci --engine-strict --no-audit --no-fund` để kiểm tra cả engine của dependencies. npm có cảnh báo ESLint 9.39.5 đã hết hỗ trợ; repo giữ mốc tham chiếu. npm 11.16 cũng có thông báo `allowScripts`; theo tài liệu đi kèm, ở phiên bản này install script vẫn được thực thi. Các thông báo này không phải kết quả build/test.
-
-Plugin `vite-tsconfig-paths` 5.1.4 theo bản tham chiếu kéo theo `tsconfck` 3.1.6 được npm cảnh báo không còn được duy trì. Hai app vẫn cài thành công trên Node 24 với `--engine-strict`.
-
-## PostgreSQL và biến môi trường
-
-Quy ước cổng theo bản tham chiếu: **web 3000**, **API 4000**, **PostgreSQL 5432**. Các file nguồn trống chưa khởi động tiến trình web/API.
-
-```powershell
-# Chỉ sao chép khi chưa có file để giữ cấu hình cá nhân.
 if (-not (Test-Path -LiteralPath .env)) {
     Copy-Item -LiteralPath .env.example -Destination .env
 }
@@ -147,45 +57,71 @@ if (-not (Test-Path -LiteralPath apps/web/.env.local)) {
     Copy-Item -LiteralPath apps/web/.env.example -Destination apps/web/.env.local
 }
 
-# Mở Docker Desktop và đợi engine sẵn sàng trước khi chạy DB.
-docker compose config --quiet
-docker compose up -d db
-docker compose ps db
-docker compose exec -T db pg_isready -U brewlite -d brewlite
-docker compose exec -T db psql -U brewlite -d brewlite -c "SELECT current_database(), current_user;"
+npm.cmd --prefix apps/web ci
+npm.cmd --prefix apps/api ci
+docker compose up -d --wait db
 
-# Kiểm tra cấu hình Prisma; chưa tạo bảng hoặc client nghiệp vụ.
 Push-Location apps/api
-npx.cmd --no-install prisma validate
+npm.cmd run prisma:generate
+npm.cmd run prisma:migrate:deploy
+npm.cmd run prisma:seed
 Pop-Location
-
-# Dừng container; giữ dữ liệu trong volume.
-docker compose down
 ```
 
-`.env.example` root chứa thông tin PostgreSQL mẫu. `apps/api/.env.example` có đủ **29 biến** cho runtime, database, JWT, OTP/eSMS, VNPAY, thanh toán/đơn hàng, loyalty và demo seed tùy chọn; `apps/web/.env.example` có URL backend cho proxy. Các `.env` thật bị Git bỏ qua, cả ba file mẫu được giữ trong Git. File API local kế thừa cấu hình provider từ A1, giữ database riêng của A2 và dùng secret JWT/OTP riêng. Chi tiết: [docs/environment.md](docs/environment.md).
+Thay các secret mẫu trong `apps/api/.env` trước khi chạy API; JWT và OTP cần secret riêng dài ít nhất 32 ký tự. File mẫu dùng OTP local và thanh toán giả lập. File local hiện có giữ cấu hình provider của máy. Xem [docs/environment.md](docs/environment.md).
 
-Compose dùng `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT` với mặc định tương ứng file mẫu nên có thể kiểm tra cấu hình khi chưa tạo `.env`. Prisma config đọc `.env` tại `apps/api`; API runtime cần bạn triển khai việc nạp biến môi trường trong entry point/config module. Nếu đổi thông tin PostgreSQL, cập nhật các URL tương ứng; mật khẩu trong URL cần URL-encode. Script `docker/postgres/init/01-create-test-db.sql` tạo thêm database `brewlite_test` trong lần khởi tạo volume mới; chưa tạo bảng hay dữ liệu nghiệp vụ. Nếu đổi tên database test, cập nhật cả script và `TEST_DATABASE_URL`.
+Prisma Client được generate vào `apps/api/src/generated/prisma`, bị Git bỏ qua. Chạy lại `prisma:generate` sau khi sửa schema. Migrations được áp dụng bằng `prisma:migrate:deploy`; dùng `prisma:migrate:dev` khi phát triển thay đổi schema mới.
 
-Từ app chạy trên máy, host DB là `localhost:5432`. Khi thêm API vào Compose, host DB sẽ là `db:5432`. A1 trong folder `brewlite` dùng volume `brewlite_pgdata`; A2 dùng volume riêng `brewlite-a2_pgdata`, không lấy dữ liệu A1. Hai stack cùng mặc định cổng 5432 nên cần đổi `POSTGRES_PORT` của A2 và URL tương ứng nếu chạy song song. Biến khởi tạo PostgreSQL và script init chỉ có hiệu lực với volume mới. Health check `pg_isready` kiểm tra PostgreSQL, không triển khai endpoint ứng dụng.
+Next.js tải Inter và Geist Mono từ Google Fonts khi compile lần đầu, nên cần kết nối mạng tới Google Fonts.
 
-Đã kiểm tra ở bước thiết lập database: container `brewlite-a2-db-1` healthy, PostgreSQL 16.15, kết nối từ Windows qua cả `DATABASE_URL` và `TEST_DATABASE_URL` thành công. Hai database `brewlite` và `brewlite_test` đều chưa có bảng nghiệp vụ; `prisma validate` và lint API đạt. Các file `.env`, `apps/api/.env`, `apps/web/.env.local` đã tạo ở máy local và bị Git bỏ qua. Toàn bộ 138 file chức năng trong `src` vẫn trống.
+## Dữ liệu và tài khoản mẫu
 
-## Quy ước làm việc và Definition of Done
+Seed tạo 10 sản phẩm, 3 topping, công thức/nguyên liệu, 3 mã khuyến mãi và hai tài khoản. Seed dùng upsert để có thể chạy lại.
 
-- Branch từ `main`: `feat/<task-id>-<mo-ta>`, `fix/<task-id>-<mo-ta>`, `docs/<task-id>-<mo-ta>` hoặc `chore/<task-id>-<mo-ta>`.
-- Commit ngắn, một mục đích, theo `type(scope): mô tả`, ví dụ `chore(tooling): dựng khung A2`.
-- Pull request vào `main`, liên kết backlog item, nêu thay đổi, cách kiểm tra và kết quả; có review trước khi merge.
-- Definition of Done: đạt acceptance criteria; chạy và ghi kết quả kiểm tra phù hợp hoặc lý do chưa áp dụng; cập nhật tài liệu/traceability; không đưa secret, dependencies cài local hay sản phẩm build vào Git; PR được review.
+Ở trang đăng nhập, chọn **Email** để dùng các tài khoản mẫu dưới đây. Tài khoản có cả số điện thoại và email đã đăng ký có thể dùng một trong hai để đăng nhập; tài khoản có số điện thoại cần hoàn tất OTP trước khi đăng nhập thành công.
 
-**Task 4.1:** Product Backlog và Sprint Board **còn cần thiết lập** trên repo A2, kèm task, acceptance criteria, người phụ trách và trạng thái. Bộ khung local chưa thiết lập các mục này trên GitHub.
+| Vai trò | Email | Mật khẩu |
+| --- | --- | --- |
+| Khách hàng | demo@brewlite.com | Demo@1234 |
+| Nhân viên pha chế | barista@brewlite.com | Barista@123 |
 
-## Kế hoạch CI/CD
+Seed quản lý là tùy chọn: đặt `AUTH_DEMO_SEED=true`, điền `DEMO_MANAGER_PHONE`, `DEMO_MANAGER_PASSWORD` trong API `.env`, rồi chạy lại seed trong môi trường development/test.
 
-`.github/workflows/ci.yml.example` là template **chưa kích hoạt**. Trong Task 4.4, sau khi có mã nguồn và unit test thật, đổi tên thành `ci.yml`.
+## Kiểm tra
 
-**Task 4.4:** template chạy khi mở/cập nhật PR vào `main`, dùng Node.js 24, cache theo từng lockfile, working directory riêng cho mỗi app. Thứ tự: **Install → Lint → Unit Test → Build**. Web dùng Node test runner, API dùng Vitest. Bạn cần viết test thật trước khi kích hoạt; không dùng file trống để kết luận unit test đã đạt. Bổ sung Prisma generate và kiểm tra Compose theo mã triển khai thực tế.
+```powershell
+npm.cmd --prefix apps/web test
+npm.cmd --prefix apps/web run lint
+npm.cmd --prefix apps/web run build
 
-Hai app có Dockerfile nhiều stage dùng Node 24 và `.dockerignore`. Dockerfile cần source/schema thực tế trước khi build; hiện chưa build image hoặc thêm app vào Compose. Dockerfile API không tự migrate/seed khi khởi động.
+npm.cmd --prefix apps/api test
+npm.cmd --prefix apps/api run lint
+npm.cmd --prefix apps/api run build
 
-**Task 5:** build/publish image thực tế, CD, secrets môi trường, hosting/deploy và hướng dẫn vận hành. `docs/deployment.md` và `docs/traceability-matrix.md` vẫn chỉ có tiêu đề và TODO.
+Push-Location apps/api
+npm.cmd run test:e2e
+Pop-Location
+```
+
+E2E cần PostgreSQL và `TEST_DATABASE_URL` trỏ tới database riêng `brewlite_test`. Chạy từ `apps/api` để nạp đúng `.env` và thư mục migrations. Bộ test dùng SMS local và thanh toán giả lập; các fixture database tạo schema riêng rồi dọn sau khi chạy.
+
+Kiểm tra local ngày 14/11/2026: build hai app đạt, 157 test frontend và 82 unit test API đạt. E2E đạt 150 test trong lượt chạy chung và 43 test business/security khi chạy riêng sau khi thêm ép kiểu PostgreSQL `name` sang `text` cho adapter Prisma 6. Lint frontend đạt; lint API còn 24 cảnh báo `typescript/no-base-to-string` từ mã VNPAY gốc và bị script `--deny-warnings` đánh trượt.
+
+## Dừng ứng dụng
+
+Nhấn Ctrl+C ở hai terminal. Dừng database và giữ dữ liệu:
+
+```powershell
+docker compose stop db
+```
+
+A1 và A2 cùng dùng cổng PostgreSQL mặc định 5432, nên cần đổi `POSTGRES_PORT` cùng database URL nếu muốn chạy đồng thời hai stack.
+
+## Tài liệu và công việc tiếp theo
+
+- [Cây mã nguồn](docs/source-tree.md)
+- [Cấu hình môi trường](docs/environment.md)
+- [Deployment](docs/deployment.md)
+- [Traceability](docs/traceability-matrix.md)
+
+Compose hiện chạy database. Dockerfile web/API và template `.github/workflows/ci.yml.example` cần được xác minh riêng trước khi triển khai; workflow chưa được kích hoạt. Product Backlog/Sprint Board và CD vẫn là các công việc tiếp theo.
