@@ -1,0 +1,72 @@
+@startuml
+' Task 2.2 – BrewLite A2 | UC-06 + UC-07
+' Nguồn: brewlite-a2-main (2).zip; đối chiếu Task 1.3 của nhóm
+
+title Sơ đồ tuần tự — Đặt đơn và thanh toán Ví/Thẻ mô phỏng (Task 2.2)
+skinparam style strictuml
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam maxMessageSize 95
+skinparam sequence {
+  ParticipantBackgroundColor #EDF5FA
+  ParticipantBorderColor #82A0B6
+  ArrowColor #39617E
+  LifeLineBorderColor #A6BDCD
+  GroupBorderColor #8099AD
+  GroupBackgroundColor #FCFDFE
+  GroupHeaderFontColor #223D55
+  ActorBorderColor #567A95
+}
+hide footbox
+
+autonumber 1 "<b>[00]</b>"
+actor "Khách hàng" as C
+participant "Next.js UI" as UI
+participant "NestJS API" as API
+database "PostgreSQL" as DB
+participant "MockPaymentService\n(nội bộ)" as MOCK
+
+== UC-06: Tạo đơn ==
+C -> UI : Xác nhận đặt đơn từ giỏ
+UI -> API : POST /api/orders (Bearer JWT, items, key tùy chọn)
+API -> API : JwtAuthGuard + ValidationPipe (lỗi: 401/400)
+API -> DB : Transaction: tính lại giá, kiểm tra nguyên liệu
+DB --> API : Giá hợp lệ; nguyên liệu khả dụng (chưa giữ kho)
+API -> DB : Lưu Order.PENDING + OrderItem; COMMIT
+DB --> API : orderId, total
+API --> UI : HTTP 201: đơn PENDING
+
+== UC-07: Thanh toán mô phỏng ==
+UI -> API : POST /api/payments (JWT, orderId, WALLET/CARD, key)
+API -> API : Validate; kiểm tra chủ đơn và Idempotency-Key
+API -> DB : Tra key; TX1 lock Order + Payment.PROCESSING
+DB --> API : Payment được ghi nhận; Order.PENDING
+API -> MOCK : charge(amount, method, mockResult?)
+MOCK --> API : success hoặc failed
+alt Mock thành công VÀ còn đủ nguyên liệu
+  API -> DB : TX2: inventory.hold; Payment.SUCCESS; Order.PAID
+  DB --> API : COMMIT thành công
+  API --> UI : HTTP 201: Order.PAID
+  UI --> C : Thông báo thanh toán thành công
+else Mock thất bại HOẶC hold thiếu nguyên liệu
+  API -> DB : TX2: Payment.FAILED; Order.PAYMENT_FAILED
+  DB --> API : Đã ghi nhận thất bại
+  API --> UI : HTTP 402: PAYMENT_FAILED
+  UI --> C : Báo thất bại; lượt mới dùng key mới
+end
+
+opt Retry do timeout, CHƯA rõ kết quả (cùng key và payload)
+  UI -> API : POST /api/payments (Idempotency-Key cũ)
+  API -> DB : Đọc Payment và responseSnapshot theo key
+  DB --> API : Kết quả đã lưu hoặc còn PROCESSING
+  API --> UI : Replay 201/402 hoặc 409 PAYMENT_IN_PROGRESS
+end
+
+note over UI,MOCK
+  WALLET/CARD là giả lập NỘI BỘ; không có gateway ngoài.
+  Key thanh toán bắt buộc. Đơn PENDING chưa giữ kho.
+  Chưa xác nhận UI checkout WALLET/CARD mới đã nghiệm thu.
+end note
+@enduml
