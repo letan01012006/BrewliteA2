@@ -279,6 +279,7 @@ export default function BaristaInventoryPage() {
 }
 
 function InventoryContent() {
+  const canManageProducts = useAuthStore((state) => state.user?.role === "MANAGER");
   const [stockRows, setStockRows] = useState<StockRow[]>([]);
   const [toppings, setToppings] = useState<PreparedTopping[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -295,6 +296,7 @@ function InventoryContent() {
   >({});
 
   const handleToggleProductStatus = useCallback(async (product: Product) => {
+    if (!canManageProducts) return;
     const currentActive = product.isActive !== false;
     const nextActive = !currentActive;
     setTogglingProductIds((prev) => ({ ...prev, [product.id]: true }));
@@ -318,7 +320,7 @@ function InventoryContent() {
     } finally {
       setTogglingProductIds((prev) => ({ ...prev, [product.id]: false }));
     }
-  }, []);
+  }, [canManageProducts]);
 
   const [togglingIngredientIds, setTogglingIngredientIds] = useState<
     Record<number, boolean>
@@ -536,6 +538,7 @@ function InventoryContent() {
           </Link>
         </div>
         <div className="flex items-center gap-3">
+          {canManageProducts && <Link href="/manager" className="text-xs font-semibold text-cafe-primary hover:underline">Quản lý nhân viên</Link>}
           <LogoutButton />
         </div>
       </div>
@@ -1064,6 +1067,7 @@ function InventoryContent() {
                     <ProductRecipeCard
                       key={product.id}
                       product={product}
+                      canManageStatus={canManageProducts}
                       toggling={Boolean(togglingProductIds[product.id])}
                       onToggleStatus={() =>
                         void handleToggleProductStatus(product)
@@ -1196,11 +1200,13 @@ function InventoryContent() {
  */
 function ProductRecipeCard({
   product,
+  canManageStatus,
   toggling,
   onToggleStatus,
   onOpenRecipe,
 }: {
   product: Product;
+  canManageStatus: boolean;
   toggling: boolean;
   onToggleStatus: () => void;
   onOpenRecipe: () => void;
@@ -1269,7 +1275,7 @@ function ProductRecipeCard({
               Bấm để xem / sửa công thức →
             </p>
           </button>
-          <div className="mt-2 flex items-center gap-2">
+          {canManageStatus && <div className="mt-2 flex items-center gap-2">
             <button
               type="button"
               disabled={toggling}
@@ -1286,7 +1292,7 @@ function ProductRecipeCard({
                   ? "Tạm dừng"
                   : "Mở bán lại"}
             </button>
-          </div>
+          </div>}
         </div>
       </div>
 

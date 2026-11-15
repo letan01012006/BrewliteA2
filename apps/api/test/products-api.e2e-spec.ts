@@ -171,13 +171,33 @@ describe('Product API validation and visibility', () => {
     await catalog('true', token).expect(403);
   });
 
-  it('does not grant MANAGER the BARISTA-only permission', async () => {
-    const manager = await f.user();
-    await f.db.user.update({
-      where: { id: manager.id },
-      data: { role: 'MANAGER' },
-    });
-    await catalog('true', manager.token).expect(403);
+  it('allows MANAGER to list inactive products and create products', async () => {
+    const manager = await f.user('MANAGER');
+    const result = await catalog('true', manager.token).expect(200);
+    expect(result.body.meta.total).toBe(2);
+    await f.api('post', '/products', manager.token)
+      .send({ name: randomUUID(), category: 'Manager', price: 35000 })
+      .expect(201);
+  });
+
+  it('only MANAGER can pause and resume products; rejected requests leave the product unchanged', async () => {
+    const manager = await f.user('MANAGER');
+    const original = await f.db.product.findUniqueOrThrow({ where: { id: activeId } });
+    for (const token of [undefined, f.customer.token, f.barista.token]) {
+      await f.api('patch', `/products/${activeId}/status`, token)
+        .send({ isActive: false }).expect(token ? 403 : 401);
+      expect(await f.db.product.findUniqueOrThrow({ where: { id: activeId } })).toEqual(original);
+    }
+    const forged = f.app.get(JwtService).sign({ sub: f.barista.id, email: f.barista.email, role: 'MANAGER' });
+    await f.api('patch', `/products/${activeId}/status`, forged).send({ isActive: false }).expect(403);
+    await f.api('patch', `/products/${activeId}/status`, manager.token).send({ isActive: false }).expect(200);
+    expect((await catalog()).body.data).toEqual([]);
+    await f.api('patch', `/products/${activeId}/status`, manager.token).send({ isActive: true }).expect(200);
+    expect((await catalog()).body.data[0].id).toBe(activeId);
+
+    // Existing tokens lose manager permissions as soon as the DB role changes.
+    await f.db.user.update({ where: { id: manager.id }, data: { role: 'BARISTA' } });
+    await f.api('patch', `/products/${activeId}/status`, manager.token).send({ isActive: false }).expect(403);
   });
 
   it.each([undefined, 'false'])(

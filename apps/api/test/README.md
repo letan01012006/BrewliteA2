@@ -2,6 +2,16 @@
 
 Run from `apps/api` after installing dependencies and generating the Prisma client.
 
+Manager/staff permission regressions are in `staff-permissions.e2e-spec.ts`,
+`products-api.e2e-spec.ts` and `auth-phone.e2e-spec.ts`. They verify manager access
+to inventory, recipes, orders, cancellation and refunds; manager-only product
+pause/resume; staff account provisioning; and rejection of forged/stale role
+claims using the current database role. Product status denials leave data unchanged.
+
+`staff-list.e2e-spec.ts` covers manager-only staff listing, bounded and stable
+pagination, exclusion of customers/managers and private fields, plus immediate
+staff login without an OTP SMS after manager provisioning.
+
 ```powershell
 npm test
 ```

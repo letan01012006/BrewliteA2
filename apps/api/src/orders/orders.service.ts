@@ -440,7 +440,7 @@ export class OrdersService {
   /**
    * Lấy chi tiết một đơn hàng (Task 9)
    * GET /api/orders/:id
-   * Chỉ chủ đơn hoặc BARISTA mới có quyền xem đơn này
+   * Chỉ chủ đơn, BARISTA hoặc MANAGER mới có quyền xem đơn này
    */
   async findOne(orderId: number, userId: number, role: string) {
     const order = await this.prisma.order.findUnique({
@@ -475,8 +475,8 @@ export class OrdersService {
       });
     }
 
-    // Kiểm tra quyền riêng tư (chỉ chủ đơn hoặc Barista)
-    if (order.userId !== userId && role !== 'BARISTA') {
+    // Kiểm tra quyền riêng tư (chủ đơn, nhân viên hoặc quản lý).
+    if (order.userId !== userId && role !== 'BARISTA' && role !== 'MANAGER') {
       throw new ForbiddenException({
         code: 'FORBIDDEN',
         message: 'Bạn không có quyền xem thông tin đơn hàng của người khác',
@@ -589,11 +589,12 @@ export class OrdersService {
         });
       }
 
-      // Chỉ chủ đơn hoặc BARISTA mới được hủy
+      // Chỉ chủ đơn, BARISTA hoặc MANAGER mới được hủy.
       if (
         action.kind === 'cancel' &&
         order.userId !== action.userId &&
-        action.role !== 'BARISTA'
+        action.role !== 'BARISTA' &&
+        action.role !== 'MANAGER'
       ) {
         throw new ForbiddenException({
           code: 'FORBIDDEN',

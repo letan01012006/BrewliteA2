@@ -158,7 +158,7 @@ export async function databaseFixture(beforeAuthMigration?: (db: PrismaClient) =
       ),
     );
     await app.listen(0, '127.0.0.1');
-    async function user(role: 'BARISTA' | 'CUSTOMER' = 'CUSTOMER') {
+    async function user(role: 'BARISTA' | 'CUSTOMER' | 'MANAGER' = 'CUSTOMER') {
       const row = await db.user.create({
         data: {
           email: `${randomUUID()}@test.example`,

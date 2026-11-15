@@ -108,12 +108,12 @@ export class PaymentsController {
   }
 
   /**
-   * Hoàn tiền cho giao dịch (Chỉ dành cho BARISTA)
+   * Hoàn tiền cho giao dịch (BARISTA hoặc MANAGER)
    * POST /api/payments/:id/refund
    */
   @Post(':id/refund')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('BARISTA')
+  @Roles('BARISTA', 'MANAGER')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

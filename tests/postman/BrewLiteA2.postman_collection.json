@@ -1060,7 +1060,7 @@
               }
             ],
             "url": "{{base_url}}/orders/active",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -1106,7 +1106,7 @@
               }
             ],
             "url": "{{base_url}}/orders/{{order_id}}/status",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"PREPARING\"\n}",
@@ -1161,7 +1161,7 @@
               }
             ],
             "url": "{{base_url}}/orders/{{order_id}}/status",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"READY\"\n}",
@@ -1216,7 +1216,7 @@
               }
             ],
             "url": "{{base_url}}/orders/{{order_id}}/status",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"COMPLETED\"\n}",
@@ -1309,7 +1309,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/stock",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -1931,7 +1931,7 @@
               }
             ],
             "url": "{{base_url}}/products/toppings",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Topping Postman {{$guid}}\",\n  \"price\": 5000\n}",
@@ -1986,7 +1986,7 @@
               }
             ],
             "url": "{{base_url}}/products/{{new_product_id}}/toppings",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"toppingIds\": {{topping_ids_json}}\n}",
@@ -2025,7 +2025,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{barista_token}}",
+                  "value": "{{manager_token}}",
                   "type": "string"
                 }
               ]
@@ -2041,7 +2041,7 @@
               }
             ],
             "url": "{{base_url}}/products/{{new_product_id}}/status",
-            "description": "Dùng new_product_id được lưu sau request tạo sản phẩm.\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "Chỉ MANAGER được bật/tắt bán. Dùng new_product_id được lưu sau request tạo sản phẩm.\n\nQuyền: MANAGER, dùng {{manager_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"isActive\": false\n}",
@@ -2085,7 +2085,7 @@
               }
             ],
             "url": "{{base_url}}/products?page=1&limit=20",
-            "description": "Danh sách đang bán được xem công khai. includeInactive=true yêu cầu token BARISTA.\n\nQuyền: Không cần token."
+            "description": "Danh sách đang bán được xem công khai. includeInactive=true yêu cầu token BARISTA hoặc MANAGER.\n\nQuyền: Không cần token."
           },
           "event": [
             {
@@ -2131,7 +2131,7 @@
               }
             ],
             "url": "{{base_url}}/products",
-            "description": "Lưu new_product_id. Sau khi tạo, cấu hình công thức và nhập nguyên liệu để có thể bán.\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "Lưu new_product_id. Sau khi tạo, cấu hình công thức và nhập nguyên liệu để có thể bán.\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Cà phê Postman {{$guid}}\",\n  \"category\": \"Cà phê\",\n  \"price\": 35000,\n  \"imageUrl\": \"/img/tra-sua.jpg\",\n  \"description\": \"Sản phẩm tạo từ Postman\",\n  \"toppingIds\": []\n}",
@@ -2305,8 +2305,8 @@
           "response": []
         },
         {
-          "id": "e5ff6a0b-f8ac-4792-aaf3-cc06d150b19d",
-          "name": "GET /orders — Barista xem toàn bộ đơn hàng trong quầy pha chế",
+          "id": "dcba4c82-aa10-49b0-a1e7-9a74379b3e74",
+          "name": "GET /orders — Barista và quản lý xem toàn bộ đơn hàng trong quầy pha chế",
           "request": {
             "method": "GET",
             "auth": {
@@ -2326,7 +2326,7 @@
               }
             ],
             "url": "{{base_url}}/orders?page=1&limit=10",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -2410,7 +2410,7 @@
               }
             ],
             "url": "{{base_url}}/orders/active",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -2515,8 +2515,8 @@
           "response": []
         },
         {
-          "id": "caec2c4a-2620-4954-a3b7-719fb976a52d",
-          "name": "PATCH /orders/{id}/status — Barista cập nhật trạng thái đơn hàng (chỉ nhận: PREPARING -> READY -> COMPLETED)",
+          "id": "98d09bbb-2b19-4ee0-aaf8-fdeb14f506f8",
+          "name": "PATCH /orders/{id}/status — Barista và quản lý cập nhật trạng thái đơn hàng (chỉ nhận: PREPARING -> READY -> COMPLETED)",
           "request": {
             "method": "PATCH",
             "auth": {
@@ -2540,7 +2540,7 @@
               }
             ],
             "url": "{{base_url}}/orders/{{order_id}}/status",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"{{order_status}}\"\n}",
@@ -2742,7 +2742,7 @@
               }
             ],
             "url": "{{base_url}}/payments/{{payment_id}}/refund",
-            "description": "Yêu cầu giao dịch/đơn ở trạng thái cho phép hoàn tiền. Không dùng đơn COMPLETED từ folder test tự động.\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "Yêu cầu giao dịch/đơn ở trạng thái cho phép hoàn tiền. Không dùng đơn COMPLETED từ folder test tự động.\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -2887,7 +2887,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/units",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -2929,7 +2929,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/ingredients",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -2975,7 +2975,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/ingredients",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"POSTMAN_{{$guid}}\",\n  \"name\": \"Nguyên liệu Postman {{$guid}}\",\n  \"unit\": \"GRAM\"\n}",
@@ -3026,7 +3026,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/ingredients/{{ingredient_id}}",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -3072,7 +3072,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/ingredients/{{new_ingredient_id}}",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"isActive\": true\n}",
@@ -3123,7 +3123,7 @@
               }
             ],
             "url": "{{base_url}}/products/{{product_id}}/recipes/{{size}}",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -3169,7 +3169,7 @@
               }
             ],
             "url": "{{base_url}}/products/{{new_product_id}}/recipes/{{size}}",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ingredients\": [\n    {\n      \"ingredientId\": {{new_ingredient_id}},\n      \"quantity\": \"16.000\"\n    }\n  ],\n  \"isActive\": true\n}",
@@ -3220,7 +3220,7 @@
               }
             ],
             "url": "{{base_url}}/products/toppings/{{topping_id}}/recipe",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -3266,7 +3266,7 @@
               }
             ],
             "url": "{{base_url}}/products/toppings/{{new_topping_id}}/recipe",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ingredientId\": {{new_ingredient_id}},\n  \"quantityPerServing\": \"5.000\"\n}",
@@ -3365,7 +3365,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/stock",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -3407,7 +3407,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/movements?page=1&limit=20",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}."
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -3457,7 +3457,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/receipts",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ingredientId\": {{new_ingredient_id}},\n  \"quantity\": \"1000.000\",\n  \"reason\": \"Nhập kho thử từ Postman\"\n}",
@@ -3525,7 +3525,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/adjustments",
-            "description": "\n\nQuyền: BARISTA, dùng {{barista_token}}.",
+            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ingredientId\": {{new_ingredient_id}},\n  \"quantity\": \"-1.000\",\n  \"reason\": \"Hao hụt thử từ Postman\"\n}",
@@ -3570,8 +3570,50 @@
       "description": "Các request để gọi riêng. Đăng nhập đúng vai trò trước khi Send; chỉnh biến ID/body theo trạng thái dữ liệu hiện tại.",
       "item": [
         {
-          "id": "e38c91cd-133d-49d8-a3a5-163bdcfc6b79",
-          "name": "POST /admin/staff — MANAGER cấp tài khoản BARISTA đã xác thực, đăng nhập ngay",
+          "id": "66dde551-2353-4397-a957-c4f6a4be67fc",
+          "name": "GET /admin/staff — MANAGER xem danh sách nhân viên, mới nhất trước",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/staff?page=1&limit=10",
+            "description": "Danh sách nhân viên BARISTA, mới nhất trước; không trả mật khẩu hoặc dữ liệu OTP.\n\nQuyền: MANAGER, dùng {{manager_token}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "be48f941-b7a8-4414-afb5-0e4f70dd0b40",
+          "name": "POST /admin/staff — MANAGER cấp tài khoản BARISTA không cần OTP, đăng nhập ngay",
           "request": {
             "method": "POST",
             "auth": {

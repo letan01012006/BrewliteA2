@@ -502,8 +502,11 @@ describe('Inventory lifecycle: real PostgreSQL transactions and HTTP', () => {
 
     // Toggle product selling status (Đang bán / Tạm dừng) independently of availability & existing orders
     const existingOrderId = await order(p500.id, 1, 'S');
+    const manager = await f.user('MANAGER');
+    await f.api('patch', `/products/${p500.id}/status`, f.barista.token)
+      .send({ isActive: false }).expect(403);
     const paused = await f
-      .api('patch', `/products/${p500.id}/status`, f.barista.token)
+      .api('patch', `/products/${p500.id}/status`, manager.token)
       .send({ isActive: false })
       .expect(200);
     expect(paused.body.isActive).toBe(false);
@@ -540,7 +543,7 @@ describe('Inventory lifecycle: real PostgreSQL transactions and HTTP', () => {
 
     // Reopen selling
     const reopened = await f
-      .api('patch', `/products/${p500.id}/status`, f.barista.token)
+      .api('patch', `/products/${p500.id}/status`, manager.token)
       .send({ isActive: true })
       .expect(200);
     expect(reopened.body.isActive).toBe(true);

@@ -7,6 +7,11 @@ gateway is used. Run `npx tsc --noEmit --incremental false` and `npm run build`
 separately for type checking and Next.js prerendering.
 
 Coverage:
+- Manager staff creation, validation, duplicate-submit protection, conflict/retry,
+  stale responses after account changes, shared operational page access, and
+  product pause/resume controls restricted to managers (`staff-management.test.mjs`).
+- Staff roster loading, pagination, refresh/retry, empty and legacy accounts,
+  aborted requests and stale responses across account changes (`staff-list.test.mjs`).
 - Preserve the order and exact payment request across network errors, 5xx,
   PROCESSING conflicts and reloads; new keys only after confirmed failure.
 - Reconcile a lost success response without paying again; safely retry cancel.
