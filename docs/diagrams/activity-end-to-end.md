@@ -56,3 +56,10 @@
 
 
 > **Bản trình bày cập nhật:** sơ đồ SVG được bố cục lại theo nhóm bước để đọc rõ hơn, giữ nguyên logic đã đối chiếu. Tập tin PlantUML là bản nguồn UML để nhóm chỉnh sửa hoặc dựng lại sơ đồ; khi chỉnh cần cập nhật hình SVG tương ứng. Không sử dụng file `.dot` trong gói nộp.
+
+
+## Bổ sung đối chiếu Manager (15/11/2026)
+
+Swimlane **Nhân viên quầy** trong sơ đồ luồng đặt hàng cũng có thể do **MANAGER** thực hiện, bởi `GET /api/orders/active` và `PATCH /api/orders/:id/status` đều khai báo `@Roles('BARISTA', 'MANAGER')`; UI `/barista` dùng chung `AuthGate`. Các hành động **xem/cấp tài khoản nhân viên** và **bật/tắt bán sản phẩm** là luồng quản lý độc lập, không nằm giữa thao tác thanh toán của khách. Xem thêm UC-13–UC-15 trong SRS và Use Case tổng quát.
+
+**Source:** `apps/api/src/orders/orders.controller.ts`, `apps/web/src/components/auth/auth-gate.tsx`, `apps/api/src/auth/staff.controller.ts`, `apps/api/src/products/products.controller.ts`.

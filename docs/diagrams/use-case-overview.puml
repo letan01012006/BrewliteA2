@@ -14,6 +14,7 @@ skinparam usecase {
 }
 actor "Khách hàng\n(Customer)" as Customer
 actor "Nhân viên quầy\n(Barista)" as Barista
+actor "Quản lý\n(Manager)" as Manager
 rectangle "HỆ THỐNG BREWLITE A2 — MVP" {
   usecase "UC-01: Xem menu" as UC01
   usecase "UC-02: Xem chi tiết và chọn tùy chọn" as UC02
@@ -21,12 +22,15 @@ rectangle "HỆ THỐNG BREWLITE A2 — MVP" {
   usecase "UC-04: Đăng ký và xác minh OTP" as UC04
   usecase "UC-05: Đăng nhập" as UC05
   usecase "UC-06: Đặt đơn hàng" as UC06
-  usecase "UC-07: Thanh toán Ví/Thẻ mô phỏng" as UC07
+  usecase "UC-07: Thanh toán (mock backend)" as UC07
   usecase "UC-08: Xem lịch sử đơn hàng" as UC08
   usecase "UC-09: Theo dõi / xem chi tiết đơn" as UC09
   usecase "UC-10: Xem hàng đợi" as UC10
   usecase "UC-11: Cập nhật trạng thái" as UC11
   usecase "UC-12: Bàn giao đơn tại quầy" as UC12
+  usecase "UC-13: Xem danh sách nhân viên" as UC13
+  usecase "UC-14: Cấp tài khoản BARISTA" as UC14
+  usecase "UC-15: Bật/tắt bán sản phẩm" as UC15
   usecase "Tính lại giá tại máy chủ" as PRICE
   usecase "Kiểm tra đủ nguyên liệu" as STOCK
   usecase "Ghi nhận kết quả thanh toán" as PAYMENT_RESULT
@@ -44,6 +48,10 @@ Customer -- UC09
 Barista -- UC10
 Barista -- UC11
 Barista -- UC12
+Manager --|> Barista
+Manager -- UC13
+Manager -- UC14
+Manager -- UC15
 UC06 ..> PRICE : <<include>>
 UC06 ..> STOCK : <<include>>
 UC07 ..> STOCK : <<include>>

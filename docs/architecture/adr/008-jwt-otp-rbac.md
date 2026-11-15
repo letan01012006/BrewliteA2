@@ -12,7 +12,7 @@ Auth dùng mật khẩu băm bcrypt và JWT Bearer; Passport/JWT guard kiểm tr
 
 Đăng ký tài khoản có SĐT lưu trạng thái chờ OTP. OTP được lưu dạng hash dùng secret riêng; có hết hạn, giới hạn thử và thời gian chờ gửi lại. JWT và điểm chào mừng chỉ cấp sau bước xác minh hợp lệ trong luồng này. Email/SĐT là thông tin đăng nhập unique, `User.id` số nguyên là định danh dữ liệu.
 
-`CUSTOMER`, `BARISTA`, `MANAGER` được kiểm tra theo quyền từng endpoint; không giả định manager tự có mọi quyền barista. OTP demo cố định chỉ được bật ở development/test với SMS local. eSMS dùng mã ngẫu nhiên, kể cả khi chạy development.
+`CUSTOMER`, `BARISTA`, `MANAGER` được kiểm tra theo quyền từng endpoint. Ở bản 15/11, các route nghiệp vụ quầy/kho/sản phẩm và đơn có `@Roles('BARISTA', 'MANAGER')`, vì vậy Manager làm được các chức năng BARISTA được cấp quyền trong source, nhưng đây là phân quyền tường minh — không phải kế thừa tự động từ enum. `GET/POST /api/admin/staff` và `PATCH /api/products/:id/status` chỉ cấp cho MANAGER; quyền tạo staff không yêu cầu OTP cho tài khoản do quản lý cấp. OTP demo cố định chỉ được bật ở development/test với SMS local. eSMS dùng mã ngẫu nhiên, kể cả khi chạy development.
 
 ## Phương án cân nhắc
 
@@ -27,4 +27,4 @@ Auth dùng mật khẩu băm bcrypt và JWT Bearer; Passport/JWT guard kiểm tr
 
 ## Đối chiếu
 
-[AuthModule](../../../apps/api/src/auth/auth.module.ts), [AuthService](../../../apps/api/src/auth/auth.service.ts), [OtpService](../../../apps/api/src/auth/otp.service.ts), [RolesGuard](../../../apps/api/src/common/guards/roles.guard.ts), [JWT strategy](../../../apps/api/src/auth/jwt.strategy.ts), [auth-session](../../../apps/web/src/lib/auth-session.ts).
+[StaffController](../../../apps/api/src/auth/staff.controller.ts), [ProductsController](../../../apps/api/src/products/products.controller.ts), [AuthModule](../../../apps/api/src/auth/auth.module.ts), [AuthService](../../../apps/api/src/auth/auth.service.ts), [OtpService](../../../apps/api/src/auth/otp.service.ts), [RolesGuard](../../../apps/api/src/common/guards/roles.guard.ts), [JWT strategy](../../../apps/api/src/auth/jwt.strategy.ts), [auth-session](../../../apps/web/src/lib/auth-session.ts).

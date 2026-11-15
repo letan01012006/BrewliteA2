@@ -52,7 +52,7 @@ Các chỉ số dưới đây là mục tiêu của bản nộp, chưa phải k�
 | --- | --- | --- | --- | --- | --- |
 | 1 | **Khách hàng** | Xem món, đặt, thanh toán và nhận đồ uống. | Đặt đúng nhu cầu, biết chi phí và tiến độ. | Dễ dùng trên điện thoại; tùy chọn rõ ràng; xem được kết quả và lịch sử đơn của mình. | Customer - tương tác trực tiếp. |
 | 2 | **Nhân viên quầy** | Tiếp nhận đơn, pha chế, cập nhật tiến độ và bàn giao. | Xử lý đúng món, tránh bỏ sót đơn. | Thấy đủ món, size, topping, số lượng và thanh toán; cập nhật được tiến độ theo quyền. | Barista - tương tác trực tiếp. |
-| 3 | **Quản lý cửa hàng** | Cung cấp quy tắc phục vụ và góp ý vận hành. | Kiểm soát khả năng nhận đơn và sai sót phục vụ. | Thông tin đơn, thanh toán và khả năng phục vụ nhất quán; phạm vi quản trị được xác định rõ. | Không có actor quản trị riêng trong MVP. |
+| 3 | **Quản lý cửa hàng** | Quản lý nhân viên, trạng thái bán sản phẩm và hỗ trợ vận hành quầy. | Cấp tài khoản nhân viên đúng quyền, kiểm soát món đang bán, hỗ trợ phục vụ. | Xem danh sách nhân viên, tạo BARISTA, bật/tắt sản phẩm và dùng được các màn hình nghiệp vụ quầy/kho đã được cấp quyền. | **Manager** – actor trực tiếp trong phạm vi quản lý mới. |
 | 4 | **Giảng viên/người nghiệm thu** | Đánh giá tạo phẩm và sản phẩm theo đề. | Kiểm chứng yêu cầu, thiết kế, code, kiểm thử và triển khai. | Chạy lại được demo, có truy vết và bản production qua HTTPS. | Không có actor riêng; dùng vai trò thử nghiệm khi đánh giá. |
 | 5 | **Nhóm phát triển** | Phân tích, xây dựng, kiểm thử, triển khai và cập nhật tài liệu. | Hoàn thành MVP qua hai Sprint. | Phạm vi rõ, phối hợp được giữa frontend/backend và tái tạo được môi trường. | Không phải actor nghiệp vụ. |
 | 6 | **Đơn vị thanh toán** | Tiếp nhận yêu cầu và cung cấp kết quả giao dịch. | Xử lý đúng đơn, đúng tiền, không ghi nhận lặp. | Yêu cầu và kết quả rõ ràng; hệ thống cập nhật đơn nhất quán. | Payment Provider khi tích hợp bên ngoài. |
@@ -60,7 +60,7 @@ Các chỉ số dưới đây là mục tiêu của bản nộp, chưa phải k�
 ### 2.2. Ranh giới vai trò trong MVP
 
 - **Khách hàng và nhân viên quầy** là hai vai trò trực tiếp sử dụng luồng nghiệp vụ chính.
-- **Quản lý cửa hàng** cung cấp quy tắc và phản hồi; MVP không nghiệm thu cổng quản trị hoặc quyền quản lý riêng.
+- **Quản lý cửa hàng (MANAGER)** là actor trực tiếp: được dùng các API nghiệp vụ BARISTA được khai báo cho cả hai role, đồng thời có quyền riêng với danh sách/cấp tài khoản nhân viên và bật/tắt sản phẩm. Điều này được phân quyền tại backend chứ không phải mặc định từ enum `Role`.
 - **Giảng viên và nhóm phát triển** là stakeholder, không mặc định trở thành actor nghiệp vụ riêng.
 - **Đơn vị thanh toán** là stakeholder; MVP dùng dịch vụ mô phỏng nội bộ. Khi mô hình hóa toàn bộ BrewLite, không mặc định thành phần mô phỏng bên trong là actor bên ngoài. Ranh giới use-case được xác định ở Task 1.3.
 
@@ -70,6 +70,8 @@ Các chỉ số dưới đây là mục tiêu của bản nộp, chưa phải k�
 
 **Bảng tóm tắt phạm vi trong MVP**
 
+**Cập nhật theo source Manager ngày 15/11/2026:** Ngoài Customer và Barista, bản mở rộng có actor Manager. Các chức năng quản trị cơ bản được bổ sung dựa trên backend/frontend đã có, không suy rộng thành dashboard doanh thu hay mọi khả năng quản trị nâng cao.
+
 | Nhóm chức năng | Phạm vi |
 | --- | --- |
 | Menu và tùy chọn | Xem món, chi tiết, giá, tình trạng có thể đặt; chọn size, topping và số lượng. |
@@ -78,7 +80,8 @@ Các chỉ số dưới đây là mục tiêu của bản nộp, chưa phải k�
 | Đặt đơn và tồn kho | Kiểm tra dữ liệu, tính giá và kiểm tra đủ tồn khi đặt; kiểm tra lại khi thanh toán. |
 | Thanh toán | Ví/Thẻ mô phỏng, kết quả thành công/thất bại, thử lại; gửi lại cùng yêu cầu không ghi nhận thêm giao dịch. |
 | Xác nhận và theo dõi | Xem mã đơn, nội dung, tổng tiền, kết quả thanh toán, lịch sử và tiến độ. |
-| Vận hành quầy | Nhân viên được cấp quyền xem hàng đợi, cập nhật tiến độ và đối chiếu mã đơn khi bàn giao. |
+| Vận hành quầy | BARISTA và MANAGER được cấp quyền xem hàng đợi, cập nhật tiến độ và đối chiếu mã đơn khi bàn giao. |
+| Quản lý cơ bản | MANAGER xem danh sách BARISTA (phân trang), cấp tài khoản BARISTA (không qua OTP) và bật/tắt trạng thái bán sản phẩm; các nghiệp vụ kho/sản phẩm dùng API đã cấp quyền cả BARISTA và MANAGER. |
 | Mobile-first/PWA | Giao diện ưu tiên điện thoại; cài/mở trên trình duyệt phù hợp; đặt món và thanh toán cần Internet. |
 | Kiểm thử và bàn giao | Dữ liệu thử nghiệm, kiểm thử luồng chính, Docker Compose local và bản production qua HTTPS. |
 
@@ -118,7 +121,16 @@ Luồng đăng ký bằng số điện thoại kế thừa có bước xác minh
 
 Thời điểm tạo đơn, kiểm tra tồn và giữ/cập nhật tồn trong các giao dịch cơ sở dữ liệu được mô tả chính xác ở sequence diagram Task 2.2. Kiểm tra tồn để phục vụ đơn thuộc MVP; quản lý nhập kho, công thức và hao hụt thuộc E-04.
 
-#### C. Kiểm thử và bàn giao
+#### C. Quyền và luồng quản lý cơ bản (bổ sung Manager)
+
+1. **Xem nhân viên:** MANAGER truy cập `/manager`, gọi `GET /api/admin/staff` với `page`, `limit`; API chỉ trả tài khoản `BARISTA`, dữ liệu được phân trang và không trả mật khẩu/OTP.
+2. **Cấp tài khoản BARISTA:** MANAGER gửi `POST /api/admin/staff` với thông tin hợp lệ; backend tạo `User.role=BARISTA`, đặt `isPhoneVerified=true`; trùng điện thoại/email bị từ chối, BARISTA/CUSTOMER không thể cấp tài khoản.
+3. **Bật/tắt trạng thái bán:** MANAGER dùng `PATCH /api/products/:id/status` (`isActive: true/false`). Menu công khai chỉ hiển thị sản phẩm còn bán; việc tạo đơn vẫn do backend xác thực dữ liệu/trạng thái.
+4. **Vận hành như nhân viên:** MANAGER truy cập `/barista` và `/barista/inventory`, dùng được các API quầy, kho, công thức và sản phẩm được đánh dấu `@Roles('BARISTA', 'MANAGER')`. Riêng thay đổi trạng thái bán sản phẩm chỉ MANAGER được làm.
+
+**Nguồn:** `apps/api/src/auth/staff.controller.ts`, `auth.service.ts`, `products/products.controller.ts`, `inventory/*controller.ts`, `orders/orders.controller.ts`, `apps/web/src/app/manager/page.tsx`, `apps/web/src/components/manager/staff-list.tsx`.
+
+#### D. Kiểm thử và bàn giao
 
 - Có dữ liệu thử nghiệm và hướng dẫn để chạy lại luồng chính.
 - Có kiểm thử nghiệp vụ quan trọng, tích hợp tạo đơn/thanh toán và luồng từ menu đến xác nhận đơn.
@@ -140,6 +152,7 @@ Qua kiểm tra mã nguồn kế thừa của nhóm:
 
 - **Backend đã có thanh toán Ví/Thẻ mô phỏng**, gồm kết quả thành công/thất bại và xử lý yêu cầu gửi lại.
 - **Giao diện còn thiếu lựa chọn Ví/Thẻ:** màn hình thanh toán hiện chỉ cho chọn VNPAY cho phần tiền phải trả; cần bổ sung lựa chọn theo phạm vi MVP.
+- **Quyền Manager đã có trong source mới:** API danh sách/cấp BARISTA, bật/tắt sản phẩm, và quyền truy cập quầy/kho. Các test e2e mới `staff-list.e2e-spec.ts`, `staff-permissions.e2e-spec.ts` có kịch bản quyền và dữ liệu riêng tư; không coi sự có mặt của test là kết quả CI pass.
 - **Kiểm tra tồn kho và quyền tại quầy đã có trong code**, cần kiểm chứng tình huống thiếu hàng, đặt đồng thời và thao tác sai quyền.
 - **Khả năng cài PWA chưa được xác nhận hoàn thiện:** code hiện có cơ chế ngừng PWA cũ, nên phải hoàn thiện và kiểm chứng mục tiêu PWA của A2.
 
@@ -158,7 +171,7 @@ Các phương án dưới đây là **Đề xuất mở rộng** để nhóm xem
 | E-01 | **VNPAY Sandbox** | Tích hợp, tiếp nhận và kiểm tra kết quả từ cổng thanh toán bên ngoài. | MVP dùng Ví/Thẻ mô phỏng. |
 | E-02 | **Điểm thưởng** | Tích, xem, sử dụng điểm và quy tắc quy đổi/hoàn điểm. | Không thuộc nghiệm thu nghiệp vụ MVP; vẫn mô hình hóa domain theo đề. |
 | E-03 | **Voucher** | Áp dụng ưu đãi kèm điều kiện, thời hạn và giới hạn lượt dùng. | Không thuộc nghiệm thu nghiệp vụ MVP; vẫn mô hình hóa domain theo đề. |
-| E-04 | **Quản lý kho chi tiết** | Nhập kho, quản trị nguyên liệu, công thức/định lượng, điều chỉnh tồn và hao hụt. | Kiểm tra đủ tồn và cập nhật lượng hàng phục vụ đơn vẫn thuộc MVP. |
+| E-04 | **Nâng cao quản trị kho** | Báo cáo hao hụt tự động, quản trị mua hàng/nhà cung cấp, nhiều kho hoặc luồng duyệt điều chỉnh. | API nhập kho, điều chỉnh tồn, nguyên liệu và công thức đã tồn tại cho BARISTA/MANAGER; không coi chúng là ngoài phạm vi code. |
 
 **Liên kết với Task 2.3:** class diagram vẫn phải có các lớp domain `Promotion` và `LoyaltyTransaction` theo đề, kèm quan hệ với người dùng và đơn hàng. Ghi rõ nghiệp vụ tương ứng thuộc phần mở rộng. Việc chưa đưa vào nghiệm thu MVP không có nghĩa các chức năng này chưa tồn tại trong code kế thừa.
 
@@ -171,13 +184,13 @@ Các phương án dưới đây là **Đề xuất mở rộng** để nhóm xem
 | OOS-03 | **Đặt món ngoại tuyến và thông báo đẩy** | Ngoài MVP: khách cần Internet và xem tiến độ trực tiếp trong web. |
 | OOS-04 | **Khách tự hủy đơn và yêu cầu hoàn tiền** | Ngoài phạm vi nghiệm thu MVP. Các xử lý đã có trong code kế thừa không được coi là cam kết của luồng tự phục vụ A2. |
 | OOS-05 | **Nhiều chi nhánh** | Ngoài MVP: chỉ phục vụ một cửa hàng, không phân tách menu hoặc tồn kho theo chi nhánh. |
-| OOS-06 | **Cổng quản trị và quyền quản lý riêng** | Ngoài MVP: quản lý cung cấp quy tắc nghiệp vụ, không có chức năng quản trị riêng được nghiệm thu. |
+| OOS-06 | **Quản trị nâng cao** | Không cam kết báo cáo doanh thu chuyên sâu, duyệt nhân viên nhiều cấp, hệ thống phân quyền tùy biến; các chức năng Manager cơ bản nêu ở mục 3 là trong phạm vi cập nhật. |
 
 ### 4.3. Ranh giới kiểm tra tồn và quản lý kho
 
 MVP phải kiểm tra đủ tồn khi đặt, kiểm tra lại khi thanh toán và cập nhật lượng hàng phục vụ đơn nhất quán. Dữ liệu nguyên liệu/công thức có sẵn có thể được dùng cho bước kiểm tra này.
 
-Nghiệp vụ quản lý nhập kho, sửa công thức, định lượng và ghi nhận hao hụt thuộc E-04. Khi không còn đủ hàng, hệ thống phải thông báo và từ chối xác nhận thanh toán; không dùng luồng hoàn tiền tự phục vụ làm cách xử lý mặc định của MVP.
+API nhập kho, điều chỉnh tồn và cấu hình công thức đang có trong source và được cấp quyền cho BARISTA/MANAGER. Nghiệp vụ kho nâng cao ở E-04 chưa nằm trong phạm vi cập nhật. Khi không còn đủ hàng, hệ thống phải thông báo và từ chối xác nhận thanh toán; không dùng luồng hoàn tiền tự phục vụ làm cách xử lý mặc định của MVP.
 
 ---
 
@@ -220,9 +233,9 @@ Các giả định là cơ sở viết SRS và mô hình cho bài nộp; cần x
 
 | Mã | Nội dung cần xác định | Mốc hoàn thành |
 | --- | --- | --- |
-| Q-06 | Nền tảng triển khai, phương án lưu dữ liệu production và cấu hình dịch vụ bên ngoài. | Task 3; phản ánh trong ADR và deployment diagram. |
+| Q-06 | Kiểm chứng URL, secret và trạng thái triển khai cloud Vercel/Render thực tế; cấu hình nền tảng đã được xác định trong repo. | Task 3; đối chiếu ADR 009 và deployment diagram. |
 
-Đây là lựa chọn triển khai còn cần nhóm chốt. Các phương án E-01 đến E-04 vẫn là đề xuất mở rộng; nếu đưa vào kế hoạch A2 phải cập nhật phạm vi, SRS và các tạo phẩm liên quan.
+Đây là lựa chọn triển khai còn cần nhóm chốt. Các phần mở rộng E-01 đến E-04 cần phân biệt với các chức năng đã có sẵn trong source. Khi thay đổi phạm vi nghiệm thu phải cập nhật SRS và các tạo phẩm liên quan.
 
 ---
 
@@ -234,7 +247,7 @@ Mức độ ghi theo **xác suất / tác động**, dùng Thấp, TB (trung bì
 | --- | --- | --- | --- | --- |
 | R-01 | **Nhiều khách cùng đặt lượng hàng cuối.** | Đơn không thể phục vụ hoặc bị từ chối khi thanh toán. | TB / Cao | Kiểm tra tồn khi đặt và khi thanh toán; kiểm thử đặt đồng thời và phân bổ lượng hàng nhất quán. |
 | R-02 | **Gửi lại hoặc bấm thanh toán nhiều lần.** | Ghi nhận giao dịch hoặc phân bổ hàng lặp. | Cao / Cao | Cùng lần thanh toán chỉ ghi nhận một kết quả; kiểm thử bấm lại, mạng chậm và gửi lại yêu cầu. |
-| R-03 | **Dịch vụ SMS hoặc cổng thanh toán bên ngoài gián đoạn.** | Đăng ký mới hoặc luồng thanh toán mở rộng bị gián đoạn. | TB / Cao | Chuẩn bị tài khoản đã xác minh; MVP dùng Ví/Thẻ mô phỏng. Kiểm thử OTP mô phỏng chỉ ở môi trường được phép. |
+| R-03 | **Dịch vụ SMS hoặc cổng thanh toán bên ngoài gián đoạn.** | Đăng ký mới hoặc luồng thanh toán mở rộng bị gián đoạn. | TB / Cao | Chuẩn bị tài khoản đã xác minh; Backend có Ví/Thẻ mô phỏng; giao diện hiện theo VNPAY/POINTS. Kiểm thử OTP mô phỏng chỉ ở môi trường được phép. |
 | R-04 | **Tài liệu lệch với code hoặc bản triển khai.** | Hiểu sai phạm vi, kiểm thử và nghiệm thu sai hành vi. | TB / Cao | Review tài liệu cùng thay đổi code; cập nhật SRS, sơ đồ, truy vết và chạy lại luồng demo. |
 | R-05 | **Thiếu thời gian trong hai Sprint hoặc phát sinh phạm vi.** | Chậm hoàn thành luồng cốt lõi và bàn giao production. | TB / Cao | Ưu tiên MVP, theo dõi việc còn lại; chỉ bổ sung mở rộng sau khi đánh giá ảnh hưởng và cập nhật phạm vi. |
 | R-06 | **Chưa quen công nghệ hoặc phối hợp tích hợp.** | Ước lượng thiếu, lỗi frontend/backend xuất hiện muộn. | TB / TB | Làm sớm một luồng nhỏ xuyên suốt; review chéo và thống nhất dữ liệu trao đổi. |

@@ -93,7 +93,7 @@ Payment PROCESSING, trả VNPAY URL;
 endif
 |Next.js Web|
 :Hiển thị mã đơn, tổng tiền, tiến độ;
-|Nhân viên quầy|
+|Quầy (Barista / Manager)|
 :Xem /api/orders/active;
 :PAID → PREPARING → READY;
 :Kiểm tra mã đơn, chuyển COMPLETED;

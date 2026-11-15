@@ -6,7 +6,7 @@
 **Tài liệu cơ sở:**
 - [Bối cảnh và Phạm vi hệ thống (Task 1.1)](./requirements/context-and-scope.md)
 - [Đặc tả yêu cầu phần mềm rút gọn - SRS (Task 1.2)](./requirements/srs.md)
-- [Đặc tả Use-Case trọng tâm: Đặt và thanh toán đơn hàng (Task 1.3)](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md)
+- [Đặc tả Use-Case trọng tâm: Đặt và thanh toán đơn hàng (Task 1.3)](./requirements/use-case-checkout.md)
 - [Sơ đồ Use-Case tổng quát](./diagrams/use-case-overview.svg) ([Nguồn PUML](./diagrams/use-case-overview.puml))
 - [Sơ đồ Use-Case Đặt và thanh toán](./diagrams/use-case-checkout.svg) ([Nguồn PUML](./diagrams/use-case-checkout.puml))
 
@@ -15,8 +15,8 @@
 ## 1. Giới thiệu & Hướng dẫn đọc ma trận
 
 Ma trận truy vết (RTM) này thiết lập mối liên kết hai chiều (bidirectional traceability) giữa:
-1. **Mục tiêu & Yêu cầu:** Mã yêu cầu chức năng (`FR-01` .. `FR-30`) và phi chức năng (`NFR-01` .. `NFR-15`).
-2. **Thiết kế & Phân tích:** Use-Case nghiệp vụ (`UC-01` .. `UC-12`) và tài liệu đặc tả chi tiết.
+1. **Mục tiêu & Yêu cầu:** Mã yêu cầu chức năng (`FR-01` .. `FR-34`) và phi chức năng (`NFR-01` .. `NFR-15`).
+2. **Thiết kế & Phân tích:** Use-Case nghiệp vụ (`UC-01` .. `UC-15`) và tài liệu đặc tả chi tiết.
 3. **Mã nguồn (Implementation):** Các module, dịch vụ trong `apps/api` và các trang/component trong `apps/web`.
 4. **Kiểm thử (Verification & Validation):** Kịch bản nghiệm thu cốt lõi (`AT-01` .. `AT-08`) và mã ca kiểm thử tự động (`TC-*`).
 
@@ -30,32 +30,32 @@ Ma trận truy vết (RTM) này thiết lập mối liên kết hai chiều (bid
 | **FR-02** | Trạng thái tải của menu (Loading/Empty/Error) | Must | UC-01 | [srs.md](./requirements/srs.md) | `apps/web/src/app/(shop)/page.tsx` | AT-07<br>`TC-FR-02` | Sẵn sàng test (A1) |
 | **FR-03** | Tìm kiếm và lọc menu theo danh mục | Should | UC-01 | [srs.md](./requirements/srs.md) | `GET /api/products?search=&category=`<br>`apps/web/src/components/menu/` | AT-07<br>`TC-FR-03` | Sẵn sàng test (A1) |
 | **FR-04** | Xem chi tiết sản phẩm | Must | UC-02 | [use-case-overview.svg](./diagrams/use-case-overview.svg)<br>[srs.md](./requirements/srs.md) | `GET /api/products/:id`<br>`apps/web/src/app/(shop)/products/[id]/` | AT-01<br>`TC-FR-04` | Sẵn sàng test (A1) |
-| **FR-05** | Chọn size (S/M/L), topping (tối đa 3), số lượng (1-20) | Must | UC-02 | [use-case-overview.svg](./diagrams/use-case-overview.svg)<br>[srs.md](./requirements/srs.md) | `apps/web/src/components/product/`<br>`apps/api/src/modules/orders/dto/` | AT-01<br>`TC-FR-05` | Sẵn sàng test (A1) |
-| **FR-06** | Hiển thị tạm tính theo lựa chọn | Must | UC-02 | [srs.md](./requirements/srs.md) | `apps/web/src/lib/pricing.ts`<br>`apps/api/src/modules/orders/pricing.service.ts` | AT-06<br>`TC-FR-06` | Sẵn sàng test (A1) |
+| **FR-05** | Chọn size (S/M/L), topping (tối đa 3), số lượng (1-20) | Must | UC-02 | [use-case-overview.svg](./diagrams/use-case-overview.svg)<br>[srs.md](./requirements/srs.md) | `apps/web/src/components/product/`<br>`apps/api/src/orders/dto/` | AT-01<br>`TC-FR-05` | Sẵn sàng test (A1) |
+| **FR-06** | Hiển thị tạm tính theo lựa chọn | Must | UC-02 | [srs.md](./requirements/srs.md) | `apps/web/src/lib/pricing.ts`<br>`apps/api/src/orders/pricing.service.ts` | AT-06<br>`TC-FR-06` | Sẵn sàng test (A1) |
 | **FR-07** | Thêm sản phẩm vào giỏ hàng | Must | UC-03 | [use-case-overview.svg](./diagrams/use-case-overview.svg)<br>[srs.md](./requirements/srs.md) | `apps/web/src/store/cart-store.ts` | AT-01<br>`TC-FR-07` | Sẵn sàng test (A1) |
 | **FR-08** | Sửa số lượng và xóa món khỏi giỏ | Must | UC-03 | [srs.md](./requirements/srs.md) | `apps/web/src/store/cart-store.ts`<br>`apps/web/src/app/(shop)/cart/` | AT-01<br>`TC-FR-08` | Sẵn sàng test (A1) |
 | **FR-09** | Tính tổng tiền giỏ hàng trước khi đặt | Must | UC-03 | [srs.md](./requirements/srs.md) | `apps/web/src/store/cart-store.ts` | AT-01, AT-06<br>`TC-FR-09` | Sẵn sàng test (A1) |
 | **FR-10** | Giữ giỏ hàng sau khi tải lại trang | Could | UC-03 | [srs.md](./requirements/srs.md) | `apps/web/src/store/cart-store.ts` (localStorage/persist) | AT-07<br>`TC-FR-10` | Sẵn sàng test (A1) |
 | **FR-11** | Đăng ký tài khoản và xác minh OTP | Must | UC-04 | [use-case-overview.svg](./diagrams/use-case-overview.svg)<br>[srs.md](./requirements/srs.md) | `POST /api/auth/register`<br>`POST /api/auth/verify-otp` | AT-01, AT-02<br>`TC-FR-11` | Sẵn sàng test (A1) |
-| **FR-12** | Đăng nhập tài khoản (JWT) | Must | UC-05 | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#mục-5) | `POST /api/auth/login`<br>`apps/web/src/store/auth-store.ts` | AT-01, AT-02<br>`TC-FR-12` | Đã đặc tả Task 1.3 |
-| **FR-13** | Phân quyền truy cập đơn (CUSTOMER / BARISTA) | Must | UC-05<br>UC-09 | [use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#mục-6) | `apps/api/src/common/guards/roles.guard.ts`<br>`GET /api/orders/:id` | AT-02<br>`TC-FR-13` | Đã đặc tả Task 1.3 |
-| **FR-14** | Gửi lại mã OTP (Rate-limit 60s) | Should | UC-04 | [srs.md](./requirements/srs.md) | `POST /api/auth/resend-otp`<br>`apps/api/src/modules/auth/` | AT-02<br>`TC-FR-14` | Sẵn sàng test (A1) |
-| **FR-15** | Tạo đơn hàng từ giỏ (Trạng thái PENDING) | Must | **UC-06** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#mục-5) | `POST /api/orders`<br>`apps/api/src/modules/orders/orders.service.ts` | AT-01<br>`TC-FR-15` | **Trọng tâm Task 1.3** |
-| **FR-16** | Tính lại giá độc lập tại máy chủ | Must | **UC-06** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#br-02) | `apps/api/src/modules/orders/pricing.service.ts` | AT-06<br>`TC-FR-16` | **Trọng tâm Task 1.3** |
-| **FR-17** | Kiểm tra khả dụng nguyên liệu (2 giai đoạn) | Must | **UC-06**<br>**UC-07** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#br-03) | `apps/api/src/modules/inventory/inventory.service.ts` | AT-03<br>`TC-FR-17` | **Trọng tâm Task 1.3** |
-| **FR-18** | Chống tạo đơn trùng khi gửi lại (Idempotency) | Must | **UC-06** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#br-04) | `apps/api/src/modules/orders/orders.service.ts` (Idempotency interceptor/check) | AT-04<br>`TC-FR-18` | **Trọng tâm Task 1.3** |
-| **FR-19** | Chọn Ví/Thẻ mô phỏng (WALLET / CARD) | Must | **UC-07** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#mục-5) | `POST /api/payments`<br>`apps/api/src/modules/payments/mock-payment.service.ts` | AT-01<br>`TC-FR-19` | **Trọng tâm Task 1.3** (UI bổ sung Task 5.1) |
-| **FR-20** | Ghi nhận thanh toán thành công/thất bại | Must | **UC-07** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#mục-5) | `apps/api/src/modules/payments/payments.service.ts` | AT-01, AT-05<br>`TC-FR-20` | **Trọng tâm Task 1.3** |
-| **FR-21** | Chống thanh toán lặp (Payment Idempotency) | Must | **UC-07** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#br-04) | `apps/api/src/modules/payments/payments.service.ts` | AT-04<br>`TC-FR-21` | **Trọng tâm Task 1.3** |
-| **FR-22** | Nhất quán tồn kho khi đặt đồng thời | Must | **UC-07** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#br-03) | `SELECT ... FOR UPDATE` + atomic reservation in `payments.service.ts` | AT-03<br>`TC-FR-22` | **Trọng tâm Task 1.3** |
-| **FR-23** | Xác nhận sau khi đặt và thanh toán | Must | **UC-07**<br>UC-09 | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#mục-5) | `apps/web/src/app/(shop)/checkout/page.tsx`<br>`apps/web/src/app/(shop)/orders/[id]/` | AT-01<br>`TC-FR-23` | **Trọng tâm Task 1.3** |
+| **FR-12** | Đăng nhập tài khoản (JWT) | Must | UC-05 | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-checkout.md#mục-5) | `POST /api/auth/login`<br>`apps/web/src/store/auth-store.ts` | AT-01, AT-02<br>`TC-FR-12` | Đã đặc tả Task 1.3 |
+| **FR-13** | Phân quyền truy cập đơn (CUSTOMER / BARISTA) | Must | UC-05<br>UC-09 | [use-case-uc06-uc07.md](./requirements/use-case-checkout.md#mục-6) | `apps/api/src/common/guards/roles.guard.ts`<br>`GET /api/orders/:id` | AT-02<br>`TC-FR-13` | Đã đặc tả Task 1.3 |
+| **FR-14** | Gửi lại mã OTP (Rate-limit 60s) | Should | UC-04 | [srs.md](./requirements/srs.md) | `POST /api/auth/resend-otp`<br>`apps/api/src/auth/` | AT-02<br>`TC-FR-14` | Sẵn sàng test (A1) |
+| **FR-15** | Tạo đơn hàng từ giỏ (Trạng thái PENDING) | Must | **UC-06** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-checkout.md#mục-5) | `POST /api/orders`<br>`apps/api/src/orders/orders.service.ts` | AT-01<br>`TC-FR-15` | **Trọng tâm Task 1.3** |
+| **FR-16** | Tính lại giá độc lập tại máy chủ | Must | **UC-06** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-checkout.md#br-02) | `apps/api/src/orders/pricing.service.ts` | AT-06<br>`TC-FR-16` | **Trọng tâm Task 1.3** |
+| **FR-17** | Kiểm tra khả dụng nguyên liệu (2 giai đoạn) | Must | **UC-06**<br>**UC-07** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-checkout.md#br-03) | `apps/api/src/inventory/inventory.service.ts` | AT-03<br>`TC-FR-17` | **Trọng tâm Task 1.3** |
+| **FR-18** | Chống tạo đơn trùng khi gửi lại (Idempotency) | Must | **UC-06** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-checkout.md#br-04) | `apps/api/src/orders/orders.service.ts` (Idempotency interceptor/check) | AT-04<br>`TC-FR-18` | **Trọng tâm Task 1.3** |
+| **FR-19** | Chọn Ví/Thẻ mô phỏng (WALLET / CARD) | Must | **UC-07** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-checkout.md#mục-5) | `POST /api/payments`<br>`apps/api/src/payments/mock-payment.service.ts` | AT-01<br>`TC-FR-19` | **Trọng tâm Task 1.3** (UI bổ sung Task 5.1) |
+| **FR-20** | Ghi nhận thanh toán thành công/thất bại | Must | **UC-07** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-checkout.md#mục-5) | `apps/api/src/payments/payments.service.ts` | AT-01, AT-05<br>`TC-FR-20` | **Trọng tâm Task 1.3** |
+| **FR-21** | Chống thanh toán lặp (Payment Idempotency) | Must | **UC-07** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-checkout.md#br-04) | `apps/api/src/payments/payments.service.ts` | AT-04<br>`TC-FR-21` | **Trọng tâm Task 1.3** |
+| **FR-22** | Nhất quán tồn kho khi đặt đồng thời | Must | **UC-07** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-checkout.md#br-03) | `SELECT ... FOR UPDATE` + atomic reservation in `payments.service.ts` | AT-03<br>`TC-FR-22` | **Trọng tâm Task 1.3** |
+| **FR-23** | Xác nhận sau khi đặt và thanh toán | Must | **UC-07**<br>UC-09 | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-checkout.md#mục-5) | `apps/web/src/app/(shop)/checkout/page.tsx`<br>`apps/web/src/app/(shop)/orders/[id]/` | AT-01<br>`TC-FR-23` | **Trọng tâm Task 1.3** |
 | **FR-24** | Xem lịch sử đơn hàng của mình | Must | UC-08 | [use-case-overview.svg](./diagrams/use-case-overview.svg)<br>[srs.md](./requirements/srs.md) | `GET /api/orders/me`<br>`apps/web/src/app/(shop)/orders/` | AT-01<br>`TC-FR-24` | Sẵn sàng test (A1) |
 | **FR-25** | Xem chi tiết và tiến độ đơn (PAID/PREPARING/READY) | Must | UC-09 | [use-case-overview.svg](./diagrams/use-case-overview.svg)<br>[srs.md](./requirements/srs.md) | `GET /api/orders/:id`<br>`apps/web/src/app/(shop)/orders/[id]/` | AT-01<br>`TC-FR-25` | Sẵn sàng test (A1) |
 | **FR-26** | Lọc lịch sử theo trạng thái đơn | Could | UC-08 | [srs.md](./requirements/srs.md) | `GET /api/orders/me?status=`<br>`apps/web/src/app/(shop)/orders/` | AT-07<br>`TC-FR-26` | Sẵn sàng test (A1) |
 | **FR-27** | Nhân viên quầy xem hàng đợi pha chế | Must | UC-10 | [use-case-overview.svg](./diagrams/use-case-overview.svg)<br>[srs.md](./requirements/srs.md) | `GET /api/orders/active`<br>`apps/web/src/app/barista/` | AT-01, AT-02<br>`TC-FR-27` | Sẵn sàng test (A1) |
-| **FR-28** | Nhân viên cập nhật trạng thái (PAID → PREPARING → READY) | Must | UC-11 | [use-case-overview.svg](./diagrams/use-case-overview.svg)<br>[srs.md](./requirements/srs.md) | `PATCH /api/orders/:id/status`<br>`apps/api/src/modules/orders/` | AT-01, AT-02<br>`TC-FR-28` | Sẵn sàng test (A1) |
+| **FR-28** | Nhân viên cập nhật trạng thái (PAID → PREPARING → READY) | Must | UC-11 | [use-case-overview.svg](./diagrams/use-case-overview.svg)<br>[srs.md](./requirements/srs.md) | `PATCH /api/orders/:id/status`<br>`apps/api/src/orders/` | AT-01, AT-02<br>`TC-FR-28` | Sẵn sàng test (A1) |
 | **FR-29** | Bàn giao đơn tại quầy (READY → COMPLETED) | Must | UC-12 | [use-case-overview.svg](./diagrams/use-case-overview.svg)<br>[srs.md](./requirements/srs.md) | `PATCH /api/orders/:id/status`<br>`apps/web/src/app/barista/` | AT-01<br>`TC-FR-29` | Sẵn sàng test (A1) |
-| **FR-30** | Xử lý đơn PENDING quá hạn (15 phút) | Should | **UC-06** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md#br-05) | `apps/api/src/modules/orders/order-expiry.job.ts` | AT-04<br>`TC-FR-30` | **Trọng tâm Task 1.3** |
+| **FR-30** | Xử lý đơn PENDING quá hạn (15 phút) | Should | **UC-06** | [use-case-checkout.svg](./diagrams/use-case-checkout.svg)<br>[use-case-uc06-uc07.md](./requirements/use-case-checkout.md#br-05) | `apps/api/src/orders/order-expiry.job.ts` | AT-04<br>`TC-FR-30` | **Trọng tâm Task 1.3** |
 
 ---
 
@@ -97,5 +97,19 @@ Ma trận truy vết (RTM) này thiết lập mối liên kết hai chiều (bid
 
 ## 5. Kết luận ma trận Task 1.3
 - **100%** 30 yêu cầu chức năng (FR) và 15 yêu cầu phi chức năng (NFR) đã được gán mã chuẩn, phân loại ưu tiên MoSCoW và liên kết đầy đủ tới Use-Case, mã nguồn và kịch bản nghiệm thu.
-- **17 mã yêu cầu trọng tâm** liên quan đến quy trình Checkout (`FR-12`, `FR-13`, `FR-15`..`FR-23`, `FR-30`, `NFR-02`, `NFR-03`, `NFR-05`, `NFR-11`, `NFR-15`) đã được đặc tả sâu tại [`docs/requirements/use-case-uc06-uc07-dat-va-thanh-toan.md`](./requirements/use-case-uc06-uc07-dat-va-thanh-toan.md).
+- **17 mã yêu cầu trọng tâm** liên quan đến quy trình Checkout (`FR-12`, `FR-13`, `FR-15`..`FR-23`, `FR-30`, `NFR-02`, `NFR-03`, `NFR-05`, `NFR-11`, `NFR-15`) đã được đặc tả sâu tại [`docs/requirements/use-case-checkout.md`](./requirements/use-case-checkout.md).
 - Ma trận sẽ tiếp tục được cập nhật ở Task 2 (Thiết kế phần mềm) và Task 3 (Kế hoạch triển khai & Kiểm thử tự động).
+
+
+## Cập nhật Manager (15/11/2026) — phần mở rộng yêu cầu
+
+Bổ sung FR-31–FR-34 và UC-13–UC-15 trong SRS/Use Case. Bảng này là truy vết mục tiêu sang mã nguồn/test; không xác nhận tất cả test đã chạy pass.
+
+| FR | UC | Tài nguyên mã nguồn / API | Kiểm thử có trong repo |
+|---|---|---|---|
+| FR-31 | UC-13 | `GET /api/admin/staff` — `apps/api/src/auth/staff.controller.ts`, `auth.service.ts`, `apps/web/src/components/manager/staff-list.tsx` | `apps/api/test/staff-list.e2e-spec.ts` |
+| FR-32 | UC-14 | `POST /api/admin/staff` — `apps/api/src/auth/staff.controller.ts`, `apps/web/src/app/manager/page.tsx` | `apps/web/test/staff-management.test.mjs` và `apps/api/test/staff-list.e2e-spec.ts` (quyền danh sách) |
+| FR-33 | UC-15 | `PATCH /api/products/:id/status` — `apps/api/src/products/products.controller.ts`, `apps/web/src/app/barista/inventory/page.tsx` | `apps/api/test/staff-permissions.e2e-spec.ts` |
+| FR-34 | UC-10–12 | `apps/api/src/orders/orders.controller.ts`, `apps/api/src/inventory/{inventory,recipes}.controller.ts`, `apps/api/src/products/products.controller.ts` | `apps/api/test/staff-permissions.e2e-spec.ts` |
+
+**Lưu ý:** các link có cấu trúc cũ của ma trận trước đây có thể phải cập nhật khi gom tài liệu báo cáo. Không suy diễn rằng Manager có quyền trên endpoint thiếu `@Roles('MANAGER')`.
