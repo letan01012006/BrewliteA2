@@ -22,6 +22,9 @@ if (process.env.VERCEL && (
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Next 16 chặn tài nguyên dev (HMR, client dev) khi mở bằng host khác "localhost".
+  // Thiếu dòng này, mở http://127.0.0.1:3000 bằng `npm run dev` sẽ không hydrate được.
+  allowedDevOrigins: ["127.0.0.1"],
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${backend}/:path*` }];
   },
