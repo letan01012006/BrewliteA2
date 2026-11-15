@@ -60,7 +60,7 @@ jobs:
     # Không nằm trong danh sách check bắt buộc của branch protection (chỉ CI (api) và CI (web)).
     # Chạy integration test của API trên PostgreSQL thật và kịch bản trình duyệt menu -> xác nhận đơn.
     name: E2E (api + browser)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
       postgres:
