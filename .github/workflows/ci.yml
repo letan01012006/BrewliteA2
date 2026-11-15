@@ -113,6 +113,8 @@ jobs:
         run: npm run test:e2e
       - name: Build and start API
         working-directory: apps/api
+        env:
+          NODE_ENV: development
         run: |
           npm run build
           nohup node dist/main.js > "$RUNNER_TEMP/api.log" 2>&1 &
