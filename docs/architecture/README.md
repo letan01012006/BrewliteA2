@@ -43,8 +43,8 @@ Hiện service truy cập trực tiếp `PrismaService`; một số helper nhậ
 
 | Module / khu vực | Trách nhiệm | Mã nguồn |
 | --- | --- | --- |
-| Auth | Đăng ký, OTP, đăng nhập SĐT/email, JWT, tạo nhân viên theo vai trò | [auth/](../../apps/api/src/auth/) |
-| Products / Toppings | Thực đơn, size, topping và cấu hình món | [products/](../../apps/api/src/products/) |
+| Auth / Staff | Đăng ký, OTP, đăng nhập SĐT/email, JWT, Manager xem danh sách và cấp tài khoản BARISTA | [auth/](../../apps/api/src/auth/) |
+| Products / Toppings | Thực đơn, size, topping, trạng thái bán chỉ MANAGER có thể bật/tắt | [products/](../../apps/api/src/products/) |
 | Orders | Tạo/hủy đơn, lịch sử, trạng thái, điều phối giữ kho và thanh toán | [orders/](../../apps/api/src/orders/) |
 | Payments | Thanh toán, replay, hoàn tiền, VNPAY return/IPN và đối soát | [payments/](../../apps/api/src/payments/) |
 | Inventory / Recipes | Nguyên liệu, công thức, nhập/điều chỉnh kho, reservation và version | [inventory/](../../apps/api/src/inventory/) |
@@ -155,3 +155,14 @@ Các ADR ghi lại lựa chọn đang áp dụng vào ngày soạn tài liệu, 
 | Lý do chọn, ưu điểm, hạn chế, trade-off | Mục 8 và phần hệ quả trong từng ADR |
 
 Tham khảo cách tổ chức tài liệu: [kiến trúc BrewLite của repo tham khảo](https://github.com/Longcodepro/Project_SE_Assignment02_HK1_2026_2027/tree/main/docs/architecture). Các mô tả về A2 được đối chiếu với đường dẫn mã nguồn tương ứng ở từng mục.
+
+
+## 10. Cập nhật phân quyền Manager sau khi hợp nhất code (15/11/2026)
+
+- **Frontend:** `/manager` là dashboard quản lý nhân viên, có form cấp tài khoản và danh sách phân trang. Điều hướng tới `/barista` và `/barista/inventory`; `AuthGate` cho MANAGER dùng màn hình nhân viên. `apps/web/src/app/manager/page.tsx`, `apps/web/src/components/manager/staff-list.tsx`.
+- **Backend:** `GET/POST /api/admin/staff` đặt `@Roles('MANAGER')` ở controller; `PATCH /api/products/:id/status` chỉ MANAGER; quản lý quầy/kho và sản phẩm/topping dùng tập quyền `BARISTA, MANAGER` trên từng endpoint.
+- **Database:** `User.role` có enum `MANAGER`; tạo nhân viên dùng `User` có sẵn, không có lớp/bảng Manager riêng. Không phát sinh migration chỉ để thêm các màn hình hoặc endpoint hiện tại.
+- **Kiểm soát:** `RolesGuard` kiểm tra danh sách roles khai báo cho từng handler/class; đây không phải vai trò kế thừa tự động ở ORM hoặc frontend. `AuthService.listStaff()` chỉ trả các cột công khai và `createStaff()` đặt `isPhoneVerified=true` để nhân viên được cấp đăng nhập ngay.
+- **Triển khai:** Cả Manager, Barista và Customer đều dùng **cùng Next.js / NestJS / PostgreSQL**; không thêm node production hay container riêng.
+
+Tham chiếu ADR 008 (cập nhật theo source 15/11/2026); hai test API mới: `apps/api/test/staff-list.e2e-spec.ts`, `apps/api/test/staff-permissions.e2e-spec.ts`.

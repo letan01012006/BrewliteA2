@@ -34,6 +34,10 @@
 | FR-28 | Must | UC-11 | PATCH /api/orders/:id/status | TC-FR-28 |
 | FR-29 | Must | UC-12 | PATCH /api/orders/:id/status | TC-FR-29 |
 | FR-30 | Should | UC-06 | POST /api/orders | TC-FR-30 |
+| FR-31 | Must | UC-13 | GET /api/admin/staff | TC-FR-31 |
+| FR-32 | Must | UC-14 | POST /api/admin/staff | TC-FR-32 |
+| FR-33 | Must | UC-15 | PATCH /api/products/:id/status | TC-FR-33 |
+| FR-34 | Must | UC-10 / UC-11 / UC-12 | orders / inventory / recipes / products | TC-FR-34 |
 | NFR-01 | Must | Đa use-case (Hiệu năng) | Web / API / CI / deployment | TC-NFR-01 |
 | NFR-02 | Must | Đa use-case (Hiệu năng) | Web / API / CI / deployment | TC-NFR-02 |
 | NFR-03 | Must | Đa use-case (Bảo mật) | Web / API / CI / deployment | TC-NFR-03 |

@@ -7,11 +7,11 @@
 ## 1. Mục tiêu, phạm vi và quy ước
 BrewLite phục vụ **một cửa hàng**, khách nhận hàng **tại quầy**, thanh toán **Ví/Thẻ mô phỏng** trong MVP. Luồng chính: **Menu → Chi tiết & tùy chọn → Giỏ hàng → Đăng nhập → Đặt đơn → Thanh toán → Lịch sử / Theo dõi**. Nhân viên quầy tiếp nhận, pha chế và bàn giao đơn.
 
-**Actor nghiệp vụ:** Khách hàng (Customer), Nhân viên quầy (Barista). Các stakeholder khác không tự động là actor MVP. Thành phần mock-payment nằm trong hệ thống, không mô hình hóa như actor bên ngoài.
+**Actor nghiệp vụ:** Khách hàng (Customer), Nhân viên quầy (Barista) và Quản lý (Manager). Manager có quyền nghiệp vụ quầy/kho tại các endpoint đã cấp quyền cả BARISTA và MANAGER, cộng quyền quản trị nhân viên và trạng thái bán sản phẩm. Thành phần mock-payment nằm trong hệ thống, không mô hình hóa như actor bên ngoài.
 
 **MoSCoW:** **Must** = bắt buộc của MVP; **Should** = nên có nếu đủ nguồn lực; **Could** = cải thiện tùy chọn; **Won’t (this release)** = không nghiệm thu trong MVP A2 dù code kế thừa có thể chứa API liên quan.
 
-**Số lượng:** 30 FR (Must: 25, Should: 3, Could: 2); 15 NFR; 7 nội dung Won’t.
+**Số lượng:** 34 FR (Must: 29, Should: 3, Could: 2); 15 NFR; 7 nội dung Won’t. FR-31–FR-34 bổ sung theo code Manager mới.
 
 ## 2. Yêu cầu chức năng (Functional Requirements – FR)
 Mỗi dòng có một điều kiện nghiệm thu đo/kiểm được; mã test gợi ý là `TC-<mã FR>` (ví dụ TC-FR-01).
@@ -43,7 +43,7 @@ Mỗi dòng có một điều kiện nghiệm thu đo/kiểm được; mã test 
 |---|---|---|---|---|
 | FR-11 | Đăng ký và xác minh OTP | Must | Đăng ký hợp lệ tạo tài khoản chờ xác minh; OTP hợp lệ trong 300 giây xác minh được; OTP sai hoặc hết hạn bị từ chối; chưa xác minh không đăng nhập để đặt hàng. | UC-04 |
 | FR-12 | Đăng nhập tài khoản | Must | Thông tin đăng nhập đúng trả phiên/token hợp lệ; sai mật khẩu trả lỗi, không tạo phiên; khách chưa đăng nhập bị chuyển sang xác thực trước khi đặt. | UC-05 |
-| FR-13 | Phân quyền truy cập đơn | Must | Khách A không xem được đơn của khách B; khách không gọi được API hàng đợi/cập nhật trạng thái dành cho BARISTA; API trả 401 hoặc 403 tương ứng. | UC-05 / UC-09 |
+| FR-13 | Phân quyền truy cập đơn | Must | Khách A không xem được đơn của khách B; CUSTOMER không gọi được API hàng đợi/cập nhật trạng thái; BARISTA/MANAGER được cấp quyền đúng endpoint; API trả 401 hoặc 403 tương ứng. | UC-05 / UC-09 / UC-10 |
 | FR-14 | Gửi lại OTP | Should | Chỉ cho gửi lại sau 60 giây; mã mới vô hiệu mã trước; gọi quá sớm bị từ chối rõ ràng (ví dụ HTTP 429). | UC-04 |
 
 ### Đặt đơn
@@ -73,14 +73,22 @@ Mỗi dòng có một điều kiện nghiệm thu đo/kiểm được; mã test 
 ### Quầy
 | Mã | Yêu cầu | Ưu tiên | Tiêu chí chấp nhận / ca kiểm thử | Use-case |
 |---|---|---|---|---|
-| FR-27 | Nhân viên xem hàng đợi | Must | Tài khoản BARISTA xem được danh sách đơn cần xử lý cùng mã đơn, món, size, topping, số lượng; CUSTOMER không truy cập được. | UC-10 |
-| FR-28 | Nhân viên cập nhật trạng thái | Must | BARISTA chuyển PAID → PREPARING → READY đúng thứ tự; chuyển nhảy cóc hoặc đổi từ trạng thái kết thúc bị từ chối (ví dụ HTTP 409). | UC-11 |
-| FR-29 | Bàn giao đơn tại quầy | Must | BARISTA đối chiếu mã đơn READY và xác nhận bàn giao; đơn chuyển COMPLETED, khách theo dõi thấy kết quả; chưa READY không thể đánh dấu COMPLETED. | UC-12 |
+| FR-27 | Nhân viên xem hàng đợi | Must | BARISTA hoặc MANAGER xem được danh sách đơn cần xử lý; CUSTOMER không truy cập được. | UC-10 |
+| FR-28 | Nhân viên cập nhật trạng thái | Must | BARISTA hoặc MANAGER chuyển PAID → PREPARING → READY đúng thứ tự; chuyển nhảy cóc bị từ chối. | UC-11 |
+| FR-29 | Bàn giao đơn tại quầy | Must | BARISTA hoặc MANAGER đối chiếu mã đơn READY và xác nhận bàn giao; đơn chuyển COMPLETED, chưa READY không thể đánh dấu COMPLETED. | UC-12 |
 
 ### Đơn hàng
 | Mã | Yêu cầu | Ưu tiên | Tiêu chí chấp nhận / ca kiểm thử | Use-case |
 |---|---|---|---|---|
 | FR-30 | Xử lý đơn chờ quá hạn | Should | Đơn PENDING quá thời hạn cấu hình được đánh dấu/hủy theo quy tắc đã công bố; lượng giữ (nếu có) được giải phóng đúng một lần. | UC-06 |
+
+### Quản lý cửa hàng — bổ sung theo source Manager
+| Mã | Yêu cầu | Ưu tiên | Tiêu chí chấp nhận / ca kiểm thử | Use-case |
+|---|---|---|---|---|
+| FR-31 | Xem danh sách tài khoản nhân viên | Must | JWT MANAGER gọi `GET /api/admin/staff?page=1&limit=10` nhận `{data,meta}`, chỉ có BARISTA, phân trang mới nhất trước, không lộ passwordHash/OTP; BARISTA/CUSTOMER bị 403. | UC-13 |
+| FR-32 | Cấp tài khoản BARISTA | Must | JWT MANAGER gọi `POST /api/admin/staff` với họ tên/SĐT/mật khẩu hợp lệ tạo User role BARISTA, isPhoneVerified=true, không qua OTP; SĐT/email trùng bị 409, BARISTA/CUSTOMER bị 403. | UC-14 |
+| FR-33 | Bật/tắt trạng thái bán sản phẩm | Must | Chỉ MANAGER gọi `PATCH /api/products/:id/status` với `isActive`; trạng thái trả về đúng, menu công khai không hiển thị món ngừng bán; BARISTA/CUSTOMER bị 403. | UC-15 |
+| FR-34 | Manager thực hiện nghiệp vụ nhân viên được cấp quyền | Must | JWT MANAGER sử dụng được `/api/orders/active`, `PATCH /api/orders/:id/status`, API nguyên liệu/kho/công thức, `POST /api/products` thuộc nhóm `@Roles('BARISTA','MANAGER')`; nhật ký có actor đúng. Không suy rộng thành quyền tự động của enum. | UC-10 / UC-11 / UC-12 |
 
 ## 3. Yêu cầu phi chức năng (Non-functional Requirements – NFR)
 **Bối cảnh đo đề xuất:** môi trường local hoặc staging cấu hình cố định, database có 50 sản phẩm mẫu, sau warm-up; đo p95 bằng công cụ tải, không tính thời gian nhập liệu tay hay SMS từ nhà cung cấp ngoài.
@@ -108,16 +116,16 @@ Mỗi dòng có một điều kiện nghiệm thu đo/kiểm được; mã test 
 |---|---|---|
 | W-01 | Tích hợp thanh toán VNPAY Sandbox và quyết toán tiền thật | MVP chỉ nghiệm thu WALLET/CARD mô phỏng; mã VNPAY kế thừa không mở rộng cam kết MVP. |
 | W-02 | Voucher và tích/sử dụng điểm thưởng | Không có kịch bản nghiệm thu bắt buộc cho voucher/loyalty trong Task 1.2; vẫn có thể giữ lớp domain theo Task 2.3. |
-| W-03 | Quản lý kho chi tiết và công thức | Nhập kho, sửa định lượng, điều chỉnh tồn không thuộc MVP; kiểm tra đủ hàng khi đặt/thanh toán vẫn bắt buộc. |
+| W-03 | Quản trị kho nâng cao | API nguyên liệu, công thức, nhập/điều chỉnh tồn đã có; không cam kết tính năng nhà cung cấp, nhiều kho, phân tích hao hụt nâng cao. |
 | W-04 | Giao hàng, nhiều chi nhánh | MVP chỉ nhận tại quầy của một cửa hàng; không yêu cầu địa chỉ/shipper hoặc đồng bộ nhiều chi nhánh. |
 | W-05 | Đặt món ngoại tuyến và thông báo đẩy | Khách cần mạng khi đặt, thanh toán và theo dõi; không nghiệm thu push notification. |
-| W-06 | Cổng quản trị riêng cho quản lý | Quản lý là stakeholder, không phải actor nghiệp vụ của MVP trong tài liệu phạm vi. |
+| W-06 | Dashboard quản trị nâng cao | Manager có trang và API nhân viên/sản phẩm trong phạm vi bổ sung; chưa cam kết biểu đồ doanh thu, duyệt nhiều cấp hoặc quyền tùy biến. |
 | W-07 | Khách tự hủy đơn và yêu cầu hoàn tiền | API kế thừa có thể tồn tại, nhưng không phải quy trình tự phục vụ bắt buộc của MVP A2. |
 
 ## 5. Sơ đồ use-case tổng quát
 ![Use-case tổng quát BrewLite](../diagrams/use-case-overview.svg)
 
-Tệp nguồn chỉnh sửa: `docs/diagrams/use-case-overview.puml`. Hai actor chính là Customer và Barista; các use-case xử lý giá/tồn/kết quả thanh toán được `<<include>>` để làm rõ những bước hệ thống bắt buộc thực hiện.
+Tệp nguồn chỉnh sửa: `docs/diagrams/use-case-overview.puml`. Ba actor là Customer, Barista và Manager; các use-case xử lý giá/tồn/kết quả thanh toán được `<<include>>` để làm rõ những bước hệ thống bắt buộc thực hiện.
 
 ## 6. Truy vết yêu cầu – use-case – API
 | UC | Use-case | Actor | FR liên quan | API / vị trí mã nguồn |
@@ -131,9 +139,12 @@ Tệp nguồn chỉnh sửa: `docs/diagrams/use-case-overview.puml`. Hai actor c
 | UC-07 | Thanh toán mô phỏng | Khách hàng | FR-17, FR-19, FR-20, FR-21, FR-22, FR-23 | POST /api/payments |
 | UC-08 | Xem lịch sử đơn | Khách hàng | FR-24, FR-26 | GET /api/orders/me |
 | UC-09 | Theo dõi/chi tiết đơn | Khách hàng | FR-13, FR-23, FR-25 | GET /api/orders/:id |
-| UC-10 | Xem hàng đợi pha chế | Nhân viên quầy | FR-27 | GET /api/orders/active |
-| UC-11 | Cập nhật trạng thái | Nhân viên quầy | FR-28 | PATCH /api/orders/:id/status |
-| UC-12 | Bàn giao đơn | Nhân viên quầy | FR-29 | PATCH /api/orders/:id/status |
+| UC-10 | Xem hàng đợi pha chế | Barista hoặc Manager | FR-27, FR-34 | GET /api/orders/active |
+| UC-11 | Cập nhật trạng thái | Barista hoặc Manager | FR-28, FR-34 | PATCH /api/orders/:id/status |
+| UC-12 | Bàn giao đơn | Barista hoặc Manager | FR-29, FR-34 | PATCH /api/orders/:id/status |
+| UC-13 | Xem danh sách nhân viên | Manager | FR-31 | GET /api/admin/staff |
+| UC-14 | Cấp tài khoản BARISTA | Manager | FR-32 | POST /api/admin/staff |
+| UC-15 | Bật/tắt bán sản phẩm | Manager | FR-33 | PATCH /api/products/:id/status |
 
 ## 7. Bộ kịch bản nghiệm thu cốt lõi (đề xuất)
 - **AT-01 – Luồng thành công:** khách xem menu, chọn size/topping, tạo đơn PENDING, thanh toán WALLET giả lập SUCCESS, thấy PAID; BARISTA cập nhật PREPARING → READY → COMPLETED; khách thấy tiến độ khớp.
@@ -143,11 +154,12 @@ Tệp nguồn chỉnh sửa: `docs/diagrams/use-case-overview.puml`. Hai actor c
 - **AT-05 – Thanh toán thất bại:** mockResult=FAILED cho kết quả PAYMENT_FAILED, hiển thị thử lại; thử lại bằng yêu cầu mới hợp lệ có thể thành công.
 - **AT-06 – Giá:** gửi request sửa giá client vẫn không làm đổi tổng tính từ database; size/topping/số lượng khớp giữa giỏ, đơn và quầy.
 - **AT-07 – UI:** menu có loading/empty/error; giao diện 360px không tràn ngang; PWA cài được trên trình duyệt đích.
+- **AT-09 – Quyền Manager:** MANAGER xem danh sách BARISTA, cấp tài khoản mới, bật/tắt món; BARISTA bị 403 trên các API quản lý riêng; MANAGER thao tác được quầy/kho.
 - **AT-08 – Vận hành:** triển khai Docker Compose, migration, /api/health và bản HTTPS; pull request thử chạy CI lint/test/build.
 
 ## 8. Ghi chú đối chiếu code (không phải kết quả nghiệm thu)
-- API hiện có: `GET /api/products`, `GET /api/products/:id`, `POST /api/auth/register`, `POST /api/auth/verify-otp`, `POST /api/auth/login`, `POST /api/orders`, `POST /api/payments`, `GET /api/orders/me`, `GET /api/orders/active`, `PATCH /api/orders/:id/status`.
-- `apps/api/src/payments/payments.service.ts` có nhánh WALLET/CARD giả lập khi chế độ mock được bật, nhưng giao diện checkout trong ZIP chủ yếu hiển thị lựa chọn VNPAY; cần bổ sung UI cho FR-19.
+- API hiện có: `GET /api/admin/staff`, `POST /api/admin/staff`, `PATCH /api/products/:id/status`, `GET /api/products`, `GET /api/products/:id`, `POST /api/auth/register`, `POST /api/auth/verify-otp`, `POST /api/auth/login`, `POST /api/orders`, `POST /api/payments`, `GET /api/orders/me`, `GET /api/orders/active`, `PATCH /api/orders/:id/status`.
+- `apps/api/src/payments/payments.service.ts` có nhánh WALLET/CARD giả lập khi chế độ mock được bật, nhưng giao diện checkout hiện có VNPAY và POINTS; lựa chọn WALLET/CARD mô phỏng chưa phải luồng UI chính, vì vậy FR-19 vẫn là mục tiêu SRS cần nghiệm thu riêng.
 - Repo có mã dọn service worker cũ; chưa tìm thấy manifest PWA và luồng đăng ký service worker mới tương ứng tiêu chí NFR-08. Cần triển khai và đo/kiểm trước khi đánh dấu đạt.
 - Quy trình `POST /api/orders` tạo PENDING và kiểm tra đủ nguyên liệu; không được hiểu nhầm là luôn giữ kho ngay khi tạo. Phân bổ/giữ kho gắn với xử lý thanh toán phải được kiểm chứng ở AT-03/AT-04.
 - Ngưỡng p95, uptime và số lượng người thử là **đề xuất để nhóm duyệt**, không khẳng định hệ thống đang đạt.
@@ -159,4 +171,4 @@ Tệp nguồn chỉnh sửa: `docs/diagrams/use-case-overview.puml`. Hai actor c
 
 
 ---
-**Tài liệu liên quan:** [Bối cảnh & phạm vi Task 1.1](./context-and-scope.md) · [Ma trận truy vết yêu cầu Task 1.2](./traceability-task-1.2.md) · [Sơ đồ use-case dạng ảnh](../diagrams/use-case-overview.png).
+**Tài liệu liên quan:** [Bối cảnh & phạm vi Task 1.1](./context-and-scope.md) · [Ma trận truy vết yêu cầu Task 1.2](./traceability-task-1.2.md) · [Sơ đồ use-case dạng ảnh](../diagrams/use-case-overview.svg).
