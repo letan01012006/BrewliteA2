@@ -95,7 +95,7 @@ function request(name, method, path, options = {}) {
       url: '{{base_url}}' + path,
       description:
         description +
-        `\n\nQuyền: ${role === 'public' ? 'Không cần token' : role.toUpperCase() + ', dùng {{' + role + '_token}}'}.`,
+        `\n\nQuyền: ${role === 'public' ? 'Không cần token' : (role === 'barista' ? 'BARISTA hoặc MANAGER' : role.toUpperCase()) + ', dùng {{' + role + '_token}}'}.`,
     },
     event: [],
     response: [],
@@ -383,6 +383,11 @@ const definitions = {
       'Mặc định dùng email. Muốn dùng SĐT, thay body bằng {"phone":"{{customer_phone}}","password":"{{customer_password}}"}. Token tự lưu vào customer_token.',
   },
   'GET /auth/me': {},
+  'GET /admin/staff': {
+    role: 'manager',
+    path: '/admin/staff?page=1&limit=10',
+    description: 'Danh sách nhân viên BARISTA, mới nhất trước; không trả mật khẩu hoặc dữ liệu OTP.',
+  },
   'POST /admin/staff': {
     role: 'manager',
     body: {
@@ -415,10 +420,10 @@ const definitions = {
   },
   'GET /products/{id}': { role: 'public', path: '/products/{{product_id}}' },
   'PATCH /products/{id}/status': {
-    role: 'barista',
+    role: 'manager',
     path: '/products/{{new_product_id}}/status',
     body: { isActive: false },
-    description: 'Dùng new_product_id được lưu sau request tạo sản phẩm.',
+    description: 'Chỉ MANAGER được bật/tắt bán. Dùng new_product_id được lưu sau request tạo sản phẩm.',
   },
   'PATCH /products/{id}/toppings': {
     role: 'barista',

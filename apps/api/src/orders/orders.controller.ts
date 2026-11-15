@@ -81,21 +81,21 @@ export class OrdersController {
   }
 
   /**
-   * Barista xem toàn bộ đơn hàng của quán (Task 9 & Task 10)
+   * Barista và quản lý xem toàn bộ đơn hàng của quán (Task 9 & Task 10)
    * GET /api/orders
-   * YÊU CẦU: Role BARISTA
+   * YÊU CẦU: Role BARISTA hoặc MANAGER
    */
   @Get()
   @UseGuards(RolesGuard)
-  @Roles('BARISTA')
-  @ApiOperation({ summary: 'Barista xem toàn bộ đơn hàng trong quầy pha chế' })
+  @Roles('BARISTA', 'MANAGER')
+  @ApiOperation({ summary: 'Barista và quản lý xem toàn bộ đơn hàng trong quầy pha chế' })
   @ApiResponse({
     status: 200,
     description: 'Lấy danh sách toàn bộ đơn hàng thành công',
   })
   @ApiResponse({
     status: 403,
-    description: 'Chỉ tài khoản BARISTA mới có quyền xem',
+    description: 'Chỉ tài khoản BARISTA hoặc MANAGER mới có quyền xem',
   })
   async findAllOrders(@Query() query: QueryOrderDto) {
     return this.ordersService.findAllOrders(query);
@@ -124,7 +124,7 @@ export class OrdersController {
 
   @Get('active')
   @UseGuards(RolesGuard)
-  @Roles('BARISTA')
+  @Roles('BARISTA', 'MANAGER')
   @ApiOperation({
     summary: 'Toàn bộ đơn đang chờ pha chế, đang pha chế hoặc chờ nhận',
   })
@@ -166,7 +166,7 @@ export class OrdersController {
   /**
    * Hủy đơn hàng và hoàn trả quyền lợi (Task 10 - Mục 6.11)
    * POST /api/orders/:id/cancel
-   * Dành cho Chủ đơn hoặc Barista
+   * Dành cho chủ đơn, Barista hoặc quản lý
    */
   @Post(':id/cancel')
   @HttpCode(HttpStatus.OK)
@@ -194,23 +194,23 @@ export class OrdersController {
   }
 
   /**
-   * Barista cập nhật trạng thái làm đồ uống (Task 10 - Mục 6.13)
+   * Barista và quản lý cập nhật trạng thái làm đồ uống (Task 10 - Mục 6.13)
    * PATCH /api/orders/:id/status
-   * YÊU CẦU: Role BARISTA
+   * YÊU CẦU: Role BARISTA hoặc MANAGER
    */
   @Patch(':id/status')
   @UseGuards(RolesGuard)
-  @Roles('BARISTA')
+  @Roles('BARISTA', 'MANAGER')
   @ApiOperation({
     summary:
-      'Barista cập nhật trạng thái đơn hàng (chỉ nhận: PREPARING -> READY -> COMPLETED)',
+      'Barista và quản lý cập nhật trạng thái đơn hàng (chỉ nhận: PREPARING -> READY -> COMPLETED)',
   })
   @ApiParam({ name: 'id', description: 'ID đơn hàng cần cập nhật', example: 1 })
   @ApiResponse({ status: 200, description: 'Cập nhật trạng thái thành công' })
   @ApiResponse({ status: 401, description: 'Chưa đăng nhập' })
   @ApiResponse({
     status: 403,
-    description: 'Chỉ tài khoản BARISTA mới có quyền thực hiện',
+    description: 'Chỉ tài khoản BARISTA hoặc MANAGER mới có quyền thực hiện',
   })
   @ApiResponse({ status: 404, description: 'Không tìm thấy đơn hàng' })
   @ApiResponse({

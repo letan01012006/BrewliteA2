@@ -41,7 +41,7 @@ Mỗi request đã cấu hình Bearer token theo vai trò. Sau khi khởi độn
 
 ## Gọi từng API
 
-Folder 02–08 chứa đủ **43 endpoint** đang có trong Swagger, chia theo xác thực, thực đơn, đơn hàng, thanh toán/khuyến mãi, kho/công thức, nhân viên và hệ thống. Chạy folder 01 trước để có token của các vai trò, rồi mở request cần thử và chọn **Send**.
+Folder 02–08 chứa đủ **44 endpoint** đang có trong Swagger, chia theo xác thực, thực đơn, đơn hàng, thanh toán/khuyến mãi, kho/công thức, nhân viên và hệ thống. Chạy folder 01 trước để có token của các vai trò, rồi mở request cần thử và chọn **Send**. Quản lý xem danh sách nhân viên qua `GET /admin/staff?page=1&limit=10`.
 
 - Đăng nhập bằng email: `{"email":"{{customer_email}}","password":"{{customer_password}}"}`. Đăng nhập bằng SĐT: `{"phone":"{{customer_phone}}","password":"{{customer_password}}"}`. Tài khoản có SĐT phải hoàn tất OTP; gửi lại OTP cần đợi ít nhất 60 giây.
 - Request tạo đơn và thanh toán tự tạo `Idempotency-Key`. Bước thanh toán lặp trong folder 01 giữ nguyên khóa và body để kiểm tra replay. Nếu đổi nội dung request thủ công, dùng khóa mới.
@@ -62,6 +62,8 @@ npm.cmd exec --yes --package=newman@6.2.3 -- newman run tests/postman/BrewLiteA2
 Lệnh tải Newman tạm thời, không thêm dependency vào ứng dụng. Đã kiểm tra local: **31 request / 53 assertions đạt**.
 
 ## Cập nhật collection khi API thay đổi
+
+`PATCH /products/{id}/status` dùng `manager_token`: chỉ quản lý được bật/tắt bán sản phẩm. Các nghiệp vụ quầy pha chế, kho, sản phẩm, topping và công thức dùng được với cả `barista_token` và `manager_token`.
 
 Giữ API test chạy rồi thực hiện:
 

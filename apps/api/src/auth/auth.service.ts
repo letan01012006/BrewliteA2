@@ -5,6 +5,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma, type User } from '../generated/prisma/client.js';
 import { RegisterDto } from './dto/register.dto.js';
+import { QueryStaffDto } from './dto/query-staff.dto.js';
 import { LoginDto } from './dto/login.dto.js';
 import { OtpService } from './otp.service.js';
 import { WELCOME_POINTS } from '../promotions/voucher-rules.js';
@@ -133,6 +134,23 @@ export class AuthService {
     }, result === 'OTP_RESEND_TOO_SOON' ? 429 : 400);
     await this.sendOtp(phone, issued);
     return this.pending(phone);
+  }
+
+  async listStaff(query: QueryStaffDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const where = { role: 'BARISTA' as const };
+    const [data, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        select: { id: true, fullName: true, phone: true, email: true, role: true, createdAt: true },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+    return { data, meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) } };
   }
 
   async createStaff(dto: RegisterDto) {

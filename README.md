@@ -63,6 +63,24 @@ Seed tự tạo các tài khoản sau, đăng nhập bằng **Email**:
 
 Tài khoản có cả SĐT và email có thể dùng một trong hai để đăng nhập. Tài khoản có SĐT cần hoàn tất OTP.
 
+## Quản lý và nhân viên
+
+Đăng nhập bằng tài khoản `MANAGER` để vào `/manager`, tạo tài khoản nhân viên bằng họ tên, SĐT, mật khẩu ban đầu và email tùy chọn. Bên dưới form là danh sách nhân viên có phân trang, hiển thị mới nhất trước và tự cập nhật sau khi tạo tài khoản. Nhân viên được cấp quyền `BARISTA`, có thể đăng nhập ngay. Trang quản lý có liên kết tới quầy pha chế và kho; trong hai trang này, quản lý có thể quay lại mục quản lý nhân viên.
+
+Tài khoản nhân viên do quản lý cấp **không cần OTP**: hệ thống đặt `isPhoneVerified=true` để cho phép đăng nhập ngay. Cơ chế này không xác minh quyền sở hữu SĐT qua SMS; quản lý chịu trách nhiệm nhập đúng SĐT. Khách hàng tự đăng ký vẫn phải xác thực OTP như trước.
+
+| Chức năng | Nhân viên (`BARISTA`) | Quản lý (`MANAGER`) |
+| --- | --- | --- |
+| Xem và xử lý đơn, hủy đơn, xem giao dịch và yêu cầu hoàn tiền theo trạng thái cho phép | Có | Có |
+| Quản lý nguyên liệu, nhập/điều chỉnh kho, sản phẩm, topping và công thức | Có | Có |
+| Xem sản phẩm đang tạm dừng bán | Có | Có |
+| Bật/tắt bán sản phẩm | Không | Có |
+| Tạo tài khoản nhân viên | Không | Có |
+
+Quyền được kiểm tra tại API theo vai trò hiện tại trong database. Nhân viên không có nút bật/tắt sản phẩm và gọi trực tiếp `PATCH /api/products/:id/status` sẽ nhận `403`. Các thao tác kho và xử lý đơn vẫn tuân theo quy tắc nghiệp vụ hiện có.
+
+Để tạo quản lý demo ở môi trường development/test, đặt `AUTH_DEMO_SEED=true`, `DEMO_MANAGER_PHONE` và `DEMO_MANAGER_PASSWORD` trong `apps/api/.env`, rồi chạy seed với `NODE_ENV=development` hoặc `test`. Seed này không chạy ở production. Thay đổi phân quyền này dùng các vai trò hiện có, không cần migration mới.
+
 ## Kiểm thử API bằng Postman
 
 Sau khi cài dependencies của API, chạy profile test riêng:

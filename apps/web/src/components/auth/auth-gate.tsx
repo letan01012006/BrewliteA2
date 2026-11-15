@@ -21,7 +21,7 @@ export function AuthGate({
   useEffect(() => {
     if (isLoading) return;
     if (!token) router.replace(`/login?redirect=${encodeURIComponent(path)}`);
-    else if (user && barista && user.role !== "BARISTA") router.replace("/");
+    else if (user && barista && user.role !== "BARISTA" && user.role !== "MANAGER") router.replace("/");
   }, [isLoading, token, user, barista, path, router]);
   if (!token || isLoading)
     return <p className="p-8 text-center">Đang kiểm tra đăng nhập...</p>;
@@ -34,6 +34,6 @@ export function AuthGate({
         </button>
       </div>
     );
-  if (barista && user.role !== "BARISTA") return null;
+  if (barista && user.role !== "BARISTA" && user.role !== "MANAGER") return null;
   return children;
 }

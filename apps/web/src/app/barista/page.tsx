@@ -28,6 +28,7 @@ export default function BaristaKitchenPage() {
 
 function BaristaContent() {
   const token = useAuthStore((state) => state.token);
+  const isManager = useAuthStore((state) => state.user?.role === "MANAGER");
 
   const [orders, setOrders] = useState<BaristaOrder[]>([]);
   const [selectedTab, setSelectedTab] = useState<"ACTIVE" | "ALL">("ACTIVE");
@@ -175,6 +176,7 @@ function BaristaContent() {
       <div className=" border-b px-4 py-2.5 flex items-center justify-between bg-cafe-surface border-cafe-line text-cafe-ink ">
         <Link href="/barista/inventory" className="text-xs font-semibold hover:text-amber-400 transition-colors text-cafe-muted ">Nguyên liệu &amp; Kho</Link>
         <div className="flex items-center gap-3">
+          {isManager && <Link href="/manager" className="text-xs font-semibold text-cafe-primary hover:underline">Quản lý nhân viên</Link>}
           <LogoutButton />
         </div>
       </div>
