@@ -1,0 +1,103 @@
+@startuml
+' BrewLite A2 | Task 2.1 (source BrewliteA2-main.zip)
+!theme plain
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam activity {
+  BorderColor #688099
+  BackgroundColor #ECF5FF
+  DiamondBorderColor #D69B38
+  DiamondBackgroundColor #FFF3DD
+}
+title Task 2.1 — Activity Diagram | BrewLite A2
+|Khách hàng|
+start
+:Mở menu, chọn đồ uống;
+|Next.js Web|
+:GET /api/products; 
+:Hiển thị menu, size, topping;
+|Khách hàng|
+:Chọn size/topping/số lượng;
+|Next.js Web|
+:POST /api/inventory/availability;
+if (Còn đủ nguyên liệu?) then (Không)
+  :Báo hết hàng, yêu cầu chỉnh món;
+  |Khách hàng|
+  :Chỉnh lựa chọn hoặc dừng;
+  stop
+else (Có)
+  :Thêm món vào giỏ;
+endif
+if (Khách đã đăng nhập?) then (Chưa)
+  |Khách hàng|
+  :Đăng nhập / đăng ký + OTP;
+  |NestJS API + DB|
+  :Xác thực và cấp JWT;
+else (Rồi)
+endif
+|Khách hàng|
+:Kiểm tra giỏ và voucher;
+|Next.js Web|
+:POST /api/orders
+(Idempotency-Key);
+|NestJS API + DB|
+:Tính lại giá, kiểm tra recipe và kho;
+if (Đơn hợp lệ / còn đủ kho?) then (Không)
+  |Next.js Web|
+  :Báo lỗi và yêu cầu sửa giỏ;
+  stop
+else (Có)
+  |NestJS API + DB|
+  :Lưu Order và OrderItem;
+endif
+if (Voucher hợp lệ làm total = 0?) then (Có)
+  :Giữ nguyên liệu; Order PAID;
+else (Không)
+  :Order PENDING, chưa giữ kho;
+  |Khách hàng|
+  :Chọn VNPAY; có thể dùng điểm thưởng;
+  |Next.js Web|
+  :POST /api/payments
+(Idempotency-Key);
+  |NestJS API + DB|
+  :Kiểm tra đơn/giá/kho một lần nữa;
+  if (Payment hợp lệ, đủ kho?) then (Không)
+    |Next.js Web|
+    :Báo lỗi; cho thử lại đúng quy tắc;
+    stop
+  else (Có)
+  endif
+  if (Điểm thanh toán đủ 100%?) then (Có)
+    :Giữ kho, Payment SUCCESS; Order PAID;
+  else (Không)
+    :Giữ kho và điểm sử dụng;
+Payment PROCESSING, trả VNPAY URL;
+    |Next.js Web|
+    :Chuyển khách sang cổng VNPAY;
+    |VNPAY|
+    :Thanh toán, gửi return/IPN;
+    |NestJS API + DB|
+    :Xác thực chữ ký, query đối soát;
+    if (VNPAY thành công?) then (Không)
+      :Hoàn hold kho/điểm, Payment FAILED;
+      :Order PAYMENT_FAILED nếu phù hợp;
+      |Next.js Web|
+      :Hiển thị thất bại; thử thanh toán lại;
+      stop
+    else (Có)
+      :Payment SUCCESS, Order PAID;
+    endif
+  endif
+endif
+|Next.js Web|
+:Hiển thị mã đơn, tổng tiền, tiến độ;
+|Nhân viên quầy|
+:Xem /api/orders/active;
+:PAID → PREPARING → READY;
+:Kiểm tra mã đơn, chuyển COMPLETED;
+|Khách hàng|
+:Theo dõi /orders, nhận món tại quầy;
+stop
+@enduml
