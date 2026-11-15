@@ -1,6 +1,6 @@
 # ADR 008 — JWT, OTP và phân quyền trên server
 
-**Trạng thái:** Đang áp dụng, ghi nhận lại ngày 14/11/2026.
+**Trạng thái:** Đang áp dụng.
 
 ## Bối cảnh
 
@@ -12,7 +12,7 @@ Auth dùng mật khẩu băm bcrypt và JWT Bearer; Passport/JWT guard kiểm tr
 
 Đăng ký tài khoản có SĐT lưu trạng thái chờ OTP. OTP được lưu dạng hash dùng secret riêng; có hết hạn, giới hạn thử và thời gian chờ gửi lại. JWT và điểm chào mừng chỉ cấp sau bước xác minh hợp lệ trong luồng này. Email/SĐT là thông tin đăng nhập unique, `User.id` số nguyên là định danh dữ liệu.
 
-`CUSTOMER`, `BARISTA`, `MANAGER` được kiểm tra theo quyền từng endpoint. Ở bản 15/11, các route nghiệp vụ quầy/kho/sản phẩm và đơn có `@Roles('BARISTA', 'MANAGER')`, vì vậy Manager làm được các chức năng BARISTA được cấp quyền trong source, nhưng đây là phân quyền tường minh — không phải kế thừa tự động từ enum. `GET/POST /api/admin/staff` và `PATCH /api/products/:id/status` chỉ cấp cho MANAGER; quyền tạo staff không yêu cầu OTP cho tài khoản do quản lý cấp. OTP demo cố định chỉ được bật ở development/test với SMS local. eSMS dùng mã ngẫu nhiên, kể cả khi chạy development.
+`CUSTOMER`, `BARISTA`, `MANAGER` được kiểm tra theo quyền từng endpoint. Các route nghiệp vụ quầy/kho/sản phẩm và đơn có `@Roles('BARISTA', 'MANAGER')`, vì vậy Manager làm được các chức năng BARISTA được cấp quyền trong source, nhưng đây là phân quyền tường minh — không phải kế thừa tự động từ enum. `GET/POST /api/admin/staff` và `PATCH /api/products/:id/status` chỉ cấp cho MANAGER; quyền tạo staff không yêu cầu OTP cho tài khoản do quản lý cấp. OTP demo cố định chỉ được bật ở development/test với SMS local. eSMS dùng mã ngẫu nhiên, kể cả khi chạy development.
 
 ## Phương án cân nhắc
 

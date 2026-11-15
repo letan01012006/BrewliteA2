@@ -1,6 +1,6 @@
 # Task 3.1 — Phương pháp và quyết định kiến trúc
 
-**Dự án:** BrewLite A2 · **Ngày ghi nhận:** 14/11/2026.
+**Dự án:** BrewLite A2
 
 Tài liệu chọn cách trình bày **kiến trúc phân lớp**. Backend áp dụng **Modular Monolith**: một ứng dụng NestJS chia module theo nghiệp vụ, dùng chung PostgreSQL. Frontend Next.js được build và chạy riêng. Các mô tả “hiện tại” được đối chiếu với mã nguồn; phần PWA và cải tiến vận hành được ghi rõ là đề xuất.
 
@@ -50,6 +50,19 @@ Hiện service truy cập trực tiếp `PrismaService`; một số helper nhậ
 | Inventory / Recipes | Nguyên liệu, công thức, nhập/điều chỉnh kho, reservation và version | [inventory/](../../apps/api/src/inventory/) |
 | Pricing / Promotions | Tính giá trên server, điều kiện voucher và quy tắc điểm | [pricing/](../../apps/api/src/common/pricing/), [promotions/](../../apps/api/src/promotions/) |
 | Prisma / Health | Kết nối database theo vòng đời ứng dụng và kiểm tra kết nối | [prisma/](../../apps/api/src/prisma/), [health/](../../apps/api/src/health/) |
+
+### Phân quyền và nghiệp vụ quản lý
+
+Hệ thống sử dụng ba vai trò `CUSTOMER`, `BARISTA` và `MANAGER` trong enum `Role`. Mỗi người dùng được lưu ở bảng `User` thông qua trường `role`; không tạo bảng Manager riêng. Phân quyền được kiểm tra ở backend bằng JWT guard và `RolesGuard`, kết hợp với kiểm tra quyền sở hữu dữ liệu tại service. Manager được cấp quyền thực hiện các nghiệp vụ nhân viên tại những endpoint khai báo cả `BARISTA` và `MANAGER`; không giả định quyền được kế thừa tự động từ enum.
+
+| Nhóm chức năng | Phân quyền và cách hiện thực |
+| --- | --- |
+| Quản lý nhân viên | Chỉ `MANAGER` được gọi `GET /api/admin/staff` để xem danh sách phân trang và `POST /api/admin/staff` để tạo tài khoản `BARISTA`. Thông tin danh sách được giới hạn ở các trường cần thiết; tài khoản nhân viên do quản lý cấp được đánh dấu xác minh số điện thoại theo luồng hiện thực. |
+| Bật/tắt bán sản phẩm | `PATCH /api/products/:id/status` chỉ dành cho `MANAGER`. |
+| Nghiệp vụ quầy và kho | Các endpoint được khai báo `@Roles('BARISTA', 'MANAGER')` cho phép cả nhân viên và quản lý thao tác theo quyền được cấp. |
+| Giao diện quản lý | Trang `/manager` hỗ trợ tạo và xem nhân viên; quản lý có thể truy cập các màn hình quầy được cho phép qua `AuthGate`. |
+
+Mọi vai trò vẫn dùng chung ứng dụng Next.js, NestJS và PostgreSQL; thay đổi RBAC không làm phát sinh môi trường triển khai riêng. Các thành phần liên quan: [StaffController](../../apps/api/src/auth/staff.controller.ts), [ProductsController](../../apps/api/src/products/products.controller.ts), [RolesGuard](../../apps/api/src/common/guards/roles.guard.ts), [màn hình Manager](../../apps/web/src/app/manager/page.tsx), [danh sách nhân viên](../../apps/web/src/components/manager/staff-list.tsx). Quyết định và đánh đổi bảo mật được trình bày trong [ADR 008](adr/008-jwt-otp-rbac.md).
 
 Các module gọi provider nội bộ qua dependency injection. `OrdersService` hiện dùng `PaymentsService`; logic điểm nằm trong helper của Orders, không có một `LoyaltyModule` độc lập. Ranh giới module cần được giữ khi mở rộng để tránh service phụ thuộc chéo quá nhiều.
 
@@ -130,7 +143,7 @@ Nếu phải chạy nhiều replica API, cần đánh giá pool database, việc
 
 ## 9. Danh mục ADR và đối chiếu yêu cầu
 
-Các ADR ghi lại lựa chọn đang áp dụng vào ngày soạn tài liệu, không dựng lại ngày quyết định hoặc người phê duyệt trong quá khứ.
+Các ADR ghi nhận quyết định kiến trúc, phương án thay thế và hệ quả đối với hệ thống BrewLite A2.
 
 | ADR | Quyết định |
 | --- | --- |
@@ -148,21 +161,10 @@ Các ADR ghi lại lựa chọn đang áp dụng vào ngày soạn tài liệu, 
 | --- | --- |
 | Trình bày theo kiến trúc phân lớp | Mục 2–3, ADR 002 |
 | Frontend Next.js/PWA | Mục 4, ADR 004 và ADR 006; PWA đầy đủ là đề xuất |
-| Backend NestJS theo module/domain | Mục 3, ADR 002 |
+| Backend NestJS theo module/domain và RBAC Manager | Mục 3, ADR 002 và ADR 008 |
 | PostgreSQL và migration | Mục 5, ADR 003 |
 | Dịch vụ thanh toán mô phỏng | Mục 6, ADR 005 |
 | Logging, health check, cấu hình | Mục 7, ADR 007 |
 | Lý do chọn, ưu điểm, hạn chế, trade-off | Mục 8 và phần hệ quả trong từng ADR |
 
-Tham khảo cách tổ chức tài liệu: [kiến trúc BrewLite của repo tham khảo](https://github.com/Longcodepro/Project_SE_Assignment02_HK1_2026_2027/tree/main/docs/architecture). Các mô tả về A2 được đối chiếu với đường dẫn mã nguồn tương ứng ở từng mục.
-
-
-## 10. Cập nhật phân quyền Manager sau khi hợp nhất code (15/11/2026)
-
-- **Frontend:** `/manager` là dashboard quản lý nhân viên, có form cấp tài khoản và danh sách phân trang. Điều hướng tới `/barista` và `/barista/inventory`; `AuthGate` cho MANAGER dùng màn hình nhân viên. `apps/web/src/app/manager/page.tsx`, `apps/web/src/components/manager/staff-list.tsx`.
-- **Backend:** `GET/POST /api/admin/staff` đặt `@Roles('MANAGER')` ở controller; `PATCH /api/products/:id/status` chỉ MANAGER; quản lý quầy/kho và sản phẩm/topping dùng tập quyền `BARISTA, MANAGER` trên từng endpoint.
-- **Database:** `User.role` có enum `MANAGER`; tạo nhân viên dùng `User` có sẵn, không có lớp/bảng Manager riêng. Không phát sinh migration chỉ để thêm các màn hình hoặc endpoint hiện tại.
-- **Kiểm soát:** `RolesGuard` kiểm tra danh sách roles khai báo cho từng handler/class; đây không phải vai trò kế thừa tự động ở ORM hoặc frontend. `AuthService.listStaff()` chỉ trả các cột công khai và `createStaff()` đặt `isPhoneVerified=true` để nhân viên được cấp đăng nhập ngay.
-- **Triển khai:** Cả Manager, Barista và Customer đều dùng **cùng Next.js / NestJS / PostgreSQL**; không thêm node production hay container riêng.
-
-Tham chiếu ADR 008 (cập nhật theo source 15/11/2026); hai test API mới: `apps/api/test/staff-list.e2e-spec.ts`, `apps/api/test/staff-permissions.e2e-spec.ts`.
+Các mô tả kiến trúc được liên kết với mã nguồn và các ADR tương ứng để thuận tiện cho việc kiểm tra và bảo trì.
