@@ -1,0 +1,60 @@
+@startuml
+' BrewLite A2 / Task 3.2 | based on BrewliteA2-main.zip, 2026-11-14
+!theme plain
+left to right direction
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 14
+skinparam shadowing false
+skinparam linetype ortho
+skinparam nodesep 32
+skinparam ranksep 28
+skinparam componentStyle rectangle
+title BrewLite A2 — Task 3.2 / UML Deployment Diagram
+node "Thiết bị khách / Barista" as device <<device>> {
+  artifact "Browser / responsive Web\n(PWA chưa được xác nhận)" as browser
+}
+frame "PRODUCTION TARGET — đã cấu hình, chưa xác minh live" as production {
+  cloud "Vercel" as vercel {
+    node "Next.js Edge / Web" as webnode <<executionEnvironment>> {
+      artifact "apps/web\n/api/* rewrite" as webart
+    }
+  }
+  node "Render · Singapore" as render <<node>> {
+    node "Web Service / Docker" as server <<executionEnvironment>> {
+      artifact "NestJS: apps/api\nstart-cloud.sh + migrate\nGET /api/health" as api
+    }
+    database "Render Managed PostgreSQL 16" as db {
+      artifact "Persistent managed storage" as data
+    }
+  }
+}
+browser --> webnode : HTTPS 443
+webnode --> server : HTTPS 443\n/api/* → BACKEND_API_URL
+server --> db : TCP 5432 private\nPrisma / DATABASE_URL
+frame "CI / CD — GitHub Actions" as cicd {
+  artifact "Repository / main" as repo
+  node "CI: lint + test + build" as ci
+  node "CD: verify SHA → Render → API smoke\n→ Vercel build/deploy/smoke/promote" as cd
+}
+repo --> ci
+ci --> cd : CI success
+cd ..> server : Render deploy / healthcheck
+cd ..> webnode : Vercel deployment / promote
+frame "LOCAL — Docker Compose (not production)" as local {
+  node "web :3000" as lweb
+  node "api :4000" as lapi
+  database "PostgreSQL 16 :5432" as ldb {
+    artifact "Docker volume: brewlite-a2_pgdata" as lvol
+  }
+  artifact "api-init / migrate + seed" as init
+}
+lweb --> lapi : HTTP service api:4000
+lapi --> ldb : TCP 5432
+init --> ldb : migrate + seed
+note bottom of production
+  Render Web Service builds Docker from repo source.
+  No GHCR/registry step configured in current CD.
+  VNPAY/eSMS HTTPS calls require provider credentials.
+  Production URLs and successful cloud deployment not yet verified.
+end note
+@enduml
