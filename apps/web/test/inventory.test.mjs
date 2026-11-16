@@ -101,6 +101,56 @@ test('calculates real uncapped cup counts per recipe size and topping servings f
   assert.equal(calls[0][0], '/inventory/movements?ingredientId=3&kind=ADJUSTMENT&from=2026-11-01&to=2026-11-04&page=1&limit=12');
 });
 
+test('inventory catalog authenticates every page with the stored staff session', async () => {
+  const storage = memoryStorage();
+  storage.setItem('brewlite_token', 'staff-session');
+  const requests = [];
+  const load = sourceLoader({}, {
+    window: {},
+    localStorage: storage,
+    fetch: async (url, options) => {
+      requests.push([url, options]);
+      if (options.headers.Authorization !== 'Bearer staff-session') {
+        return new Response(JSON.stringify({ code: 'UNAUTHORIZED', message: 'Login required' }), { status: 401 });
+      }
+      const query = new URL(url, 'http://localhost').searchParams;
+      const page = Number(query.get('page'));
+      assert.equal(query.get('includeInactive'), 'true');
+      return new Response(JSON.stringify({
+        data: [{ id: page, isActive: page === 1 }],
+        meta: { total: 2, page, limit: 50, totalPages: 2 },
+      }), { status: 200 });
+    },
+  });
+
+  const catalog = await load('src/lib/api/inventory.ts').getProductsCatalog();
+  assert.deepEqual(Array.from(catalog, item => [item.id, item.isActive]), [[1, true], [2, false]]);
+  assert.deepEqual(requests.map(([url]) => url), [
+    '/api/products?limit=50&page=1&includeInactive=true',
+    '/api/products?limit=50&page=2&includeInactive=true',
+  ]);
+});
+
+test('inventory catalog reports an expired staff session without retrying unauthorized requests', async () => {
+  const storage = memoryStorage();
+  storage.setItem('brewlite_token', 'expired-session');
+  let requests = 0;
+  const expired = [];
+  const load = sourceLoader({}, {
+    window: {},
+    localStorage: storage,
+    fetch: async () => {
+      requests++;
+      return new Response(JSON.stringify({ code: 'UNAUTHORIZED', message: 'Login required' }), { status: 401 });
+    },
+  });
+  load('src/lib/auth-session.ts').onUnauthorized(token => expired.push(token));
+
+  await assert.rejects(load('src/lib/api/inventory.ts').getProductsCatalog(), error => error.statusCode === 401);
+  assert.deepEqual(expired, ['expired-session']);
+  assert.equal(requests, 1);
+});
+
 test('getProductsCatalog paginates with limit=50&includeInactive=true, distinguishes ADJUSTMENT delta labels, and blocks paused products in cart', async () => {
   const calls = [];
   class MockApiError extends Error {

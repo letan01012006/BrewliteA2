@@ -44,7 +44,7 @@ if (
   );
 }
 
-const port = Number(settings.POSTMAN_PORT || 4001);
+const port = Number(settings.POSTMAN_PORT || 4101);
 if (!Number.isInteger(port) || port < 1024 || port > 65535) {
   throw new Error('POSTMAN_PORT phải là số nguyên từ 1024 đến 65535.');
 }

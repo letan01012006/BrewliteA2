@@ -65,7 +65,7 @@ Tài khoản có cả SĐT và email có thể dùng một trong hai để đăn
 
 ## Quản lý và nhân viên
 
-Đăng nhập bằng tài khoản `MANAGER` để vào `/manager`, tạo tài khoản nhân viên bằng họ tên, SĐT, mật khẩu ban đầu và email tùy chọn. Bên dưới form là danh sách nhân viên có phân trang, hiển thị mới nhất trước và tự cập nhật sau khi tạo tài khoản. Nhân viên được cấp quyền `BARISTA`, có thể đăng nhập ngay. Trang quản lý có liên kết tới quầy pha chế và kho; trong hai trang này, quản lý có thể quay lại mục quản lý nhân viên.
+Đăng nhập bằng tài khoản `MANAGER` để vào `/manager`, tạo tài khoản nhân viên bằng họ tên, SĐT, mật khẩu ban đầu và email tùy chọn. Bên dưới form là danh sách nhân viên có phân trang, hiển thị mới nhất trước và tự cập nhật sau khi thêm, sửa hoặc xóa. Mỗi dòng có nút **Sửa** họ tên/SĐT/email và **Xóa** với hộp xác nhận. Nhân viên phải giữ ít nhất một SĐT hoặc email để đăng nhập. Khi xóa, tài khoản bị gỡ khỏi danh sách, không thể đăng nhập và JWT cũ mất hiệu lực; lịch sử đơn hàng, điểm và nhập kho vẫn được giữ lại. SĐT/email của tài khoản đã xóa vẫn được giữ và không cấp lại cho tài khoản khác. Các API `POST /api/admin/staff`, `PATCH /api/admin/staff/:id` và `DELETE /api/admin/staff/:id` chỉ dành cho quản lý, chỉ sửa/xóa `BARISTA`, không đổi vai trò hoặc mật khẩu qua API sửa. Nhân viên được cấp quyền `BARISTA`, có thể đăng nhập ngay. Trang quản lý có liên kết tới quầy pha chế và kho; trong hai trang này, quản lý có thể quay lại mục quản lý nhân viên.
 
 Tài khoản nhân viên do quản lý cấp **không cần OTP**: hệ thống đặt `isPhoneVerified=true` để cho phép đăng nhập ngay. Cơ chế này không xác minh quyền sở hữu SĐT qua SMS; quản lý chịu trách nhiệm nhập đúng SĐT. Khách hàng tự đăng ký vẫn phải xác thực OTP như trước.
 
@@ -89,7 +89,7 @@ Sau khi cài dependencies của API, chạy profile test riêng:
 npm.cmd --prefix apps/api run postman:dev
 ```
 
-Import hai file JSON trong `tests/postman/`, chọn environment **BrewLite A2 — Postman Demo**, rồi chạy folder **01. Luồng test tự động**. Profile dùng cổng **4001**, database test riêng, OTP **123456** và thanh toán giả lập; token được lưu tự động. Xem [hướng dẫn Postman](tests/postman/README.md).
+Import hai collection (Swagger và tự động) cùng environment trong `tests/postman/`, chọn **BrewLite A2 — Postman Demo**. Collection Swagger có **46 API** chia nhóm như Swagger; muốn chạy toàn bộ, Run collection **BrewLite A2 — Chạy toàn bộ API** (**79 request / 124 assertions**). Profile dùng cổng **4101**, database test riêng, OTP **123456** và thanh toán giả lập; token được lưu tự động. Xem [hướng dẫn Postman](tests/postman/README.md).
 
 ## Quy ước làm việc
 

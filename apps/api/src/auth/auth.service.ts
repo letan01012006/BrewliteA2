@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, HttpException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, HttpException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import { timingSafeEqual } from 'node:crypto';
@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma, type User } from '../generated/prisma/client.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { QueryStaffDto } from './dto/query-staff.dto.js';
+import { UpdateStaffDto } from './dto/update-staff.dto.js';
 import { LoginDto } from './dto/login.dto.js';
 import { OtpService } from './otp.service.js';
 import { WELCOME_POINTS } from '../promotions/voucher-rules.js';
@@ -13,6 +14,10 @@ import { WELCOME_POINTS } from '../promotions/voucher-rules.js';
 export const publicUserSelect = {
   id: true, email: true, phone: true, isPhoneVerified: true,
   fullName: true, role: true, loyaltyPoints: true,
+} as const;
+
+const staffUserSelect = {
+  id: true, fullName: true, phone: true, email: true, role: true, createdAt: true,
 } as const;
 
 @Injectable()
@@ -89,7 +94,7 @@ export class AuthService {
     const result = await this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw(Prisma.sql`SELECT id FROM "User" WHERE phone = ${phone} FOR UPDATE`);
       const user = await tx.user.findUnique({ where: { phone } });
-      if (!user || user.isPhoneVerified || !user.otpHash)
+      if (!user || user.deletedAt || user.isPhoneVerified || !user.otpHash)
         return { error: 'OTP_INVALID_OR_USED' } as const;
       if (user.otpAttempts >= 5) return { error: 'OTP_ATTEMPTS_EXCEEDED' } as const;
       if (!user.otpExpiresAt || user.otpExpiresAt.getTime() <= Date.now())
@@ -122,7 +127,7 @@ export class AuthService {
     const result = await this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw(Prisma.sql`SELECT id FROM "User" WHERE phone = ${phone} FOR UPDATE`);
       const user = await tx.user.findUnique({ where: { phone } });
-      if (!user || user.isPhoneVerified) return 'OTP_NOT_PENDING';
+      if (!user || user.deletedAt || user.isPhoneVerified) return 'OTP_NOT_PENDING';
       if (user.otpSentAt && Date.now() - user.otpSentAt.getTime() < 60000) return 'OTP_RESEND_TOO_SOON';
       if (issued.data.otpHash === user.otpHash) issued = this.otp.issue(phone, user.otpHash);
       await tx.user.update({ where: { id: user.id }, data: issued.data });
@@ -139,14 +144,14 @@ export class AuthService {
   async listStaff(query: QueryStaffDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
-    const where = { role: 'BARISTA' as const };
+    const where = { role: 'BARISTA' as const, deletedAt: null };
     const [data, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-        select: { id: true, fullName: true, phone: true, email: true, role: true, createdAt: true },
+        select: staffUserSelect,
       }),
       this.prisma.user.count({ where }),
     ]);
@@ -165,6 +170,43 @@ export class AuthService {
     } catch (error) { this.conflict(error); }
   }
 
+  async updateStaff(id: number, dto: UpdateStaffDto) {
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        // Serialize edits and removal so concurrent updates cannot remove both login identifiers.
+        const rows = await tx.$queryRaw<{ id: number }[]>(Prisma.sql`
+          SELECT id FROM "User" WHERE id = ${id} AND role = 'BARISTA'
+          AND "deletedAt" IS NULL FOR UPDATE
+        `);
+        if (!rows.length) throw new NotFoundException({ code: 'STAFF_NOT_FOUND', message: 'Không tìm thấy nhân viên.' });
+        const staff = await tx.user.findUniqueOrThrow({ where: { id } });
+        const phone = dto.phone === undefined ? staff.phone : dto.phone;
+        const email = dto.email === undefined ? staff.email : dto.email;
+        if (!phone && !email) throw new BadRequestException({
+          code: 'STAFF_IDENTIFIER_REQUIRED', message: 'Cần có ít nhất số điện thoại hoặc email để nhân viên đăng nhập.',
+        });
+        return tx.user.update({
+          where: { id },
+          data: {
+            ...(dto.fullName !== undefined ? { fullName: dto.fullName } : {}),
+            phone, email,
+            ...(dto.phone !== undefined ? { isPhoneVerified: true, otpHash: null, otpExpiresAt: null, otpSentAt: null, otpAttempts: 0 } : {}),
+          },
+          select: staffUserSelect,
+        });
+      });
+    } catch (error) { this.conflict(error); }
+  }
+
+  async removeStaff(id: number) {
+    const result = await this.prisma.user.updateMany({
+      where: { id, role: 'BARISTA', deletedAt: null },
+      data: { deletedAt: new Date(), otpHash: null, otpExpiresAt: null, otpSentAt: null, otpAttempts: 0 },
+    });
+    if (!result.count) throw new NotFoundException({ code: 'STAFF_NOT_FOUND', message: 'Không tìm thấy nhân viên.' });
+    return { id, deleted: true };
+  }
+
   async login(dto: LoginDto) {
     if (!!dto.phone === !!dto.email) throw new BadRequestException({
       code: 'LOGIN_IDENTIFIER_REQUIRED', message: 'Chọn đúng một trong số điện thoại hoặc email.',
@@ -172,7 +214,7 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: dto.phone ? { phone: dto.phone } : { email: dto.email! },
     });
-    if (!user || !await bcrypt.compare(dto.password, user.passwordHash))
+    if (!user || user.deletedAt || !await bcrypt.compare(dto.password, user.passwordHash))
       throw new UnauthorizedException({ code: 'INVALID_CREDENTIALS', message: 'Thông tin đăng nhập không chính xác.' });
     if (user.phone && !user.isPhoneVerified)
       throw new ForbiddenException({
@@ -195,7 +237,7 @@ export class AuthService {
   }
 
   async getMe(userId: number) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: publicUserSelect });
+    const user = await this.prisma.user.findUnique({ where: { id: userId, deletedAt: null }, select: publicUserSelect });
     if (!user) throw new UnauthorizedException({ code: 'UNAUTHORIZED', message: 'Không tìm thấy tài khoản.' });
     return user;
   }

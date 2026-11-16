@@ -2,10 +2,12 @@ import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Script } from 'node:vm';
+import { addFullFlow } from './full-flow.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const outputDirectory = resolve(root, 'tests/postman');
-const sourceUrl = (process.argv[2] || 'http://127.0.0.1:4001').replace(
+const sourceUrl = (process.argv[2] || 'http://127.0.0.1:4101').replace(
   /\/$/,
   '',
 );
@@ -45,6 +47,9 @@ const save = (variable, expression) =>
   `if (pm.response.code < 300 && ${expression} !== undefined) pm.environment.set('${variable}', String(${expression}));`;
 const newKey = (variable) =>
   `pm.environment.set('${variable}', pm.variables.replaceIn('{{$guid}}'));`;
+const keepKey = (variable) => `if (!pm.variables.get('${variable}')) { ${newKey(variable)} }`;
+const storedScript = (script) =>
+  `const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;\n${script.replaceAll('pm.environment.', 'vars.')}`;
 
 const registerSetup = `
 const suffix = Date.now().toString().slice(-8);
@@ -67,6 +72,7 @@ if (pm.response.code === 200 && data) {
   if (data.accessToken) {
     pm.environment.set('${role}_token', data.accessToken);
     pm.environment.set('${role}_id', String(data.user.id));
+    pm.environment.set('auth_token', data.accessToken);
   }
 }
 `;
@@ -114,20 +120,20 @@ function request(name, method, path, options = {}) {
   if (before.trim())
     item.event.push({
       listen: 'prerequest',
-      script: { type: 'text/javascript', exec: lines(before) },
+      script: { type: 'text/javascript', exec: lines(storedScript(before)) },
     });
   item.event.push({
     listen: 'test',
     script: {
       type: 'text/javascript',
-      exec: lines(`
+      exec: lines(storedScript(`
 (function () {
 let data = null;
 try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }
 pm.test('HTTP ${expected.join(' hoặc ')}', function () { pm.expect(pm.response.code).to.be.oneOf(${JSON.stringify(expected)}); });
 ${after}
 })();
-`),
+`)),
     },
   });
   return item;
@@ -156,9 +162,9 @@ const orderHeaders = [['Idempotency-Key', '{{order_key}}']];
 const paymentHeaders = [['Idempotency-Key', '{{payment_key}}']];
 
 const quick = {
-  name: '01. Luồng test tự động',
+  name: '01. Toàn bộ API tự động',
   description:
-    'Chạy cả folder theo thứ tự với environment Postman Demo ở cổng 4001. Tự tạo khách/nhân viên mới, lưu token/ID và test vòng đời đơn hàng bằng thanh toán giả lập.',
+    'Chạy theo thứ tự với API test riêng ở cổng 4101. Tự tạo khách/nhân viên và dữ liệu kho; kiểm tra toàn bộ endpoint, lưu token/ID và thử thanh toán giả lập. Callback VNPAY kiểm tra từ chối chữ ký sai; thanh toán ngân hàng thật cần sandbox riêng.',
   item: [],
 };
 function quickRequest(name, method, path, options) {
@@ -174,6 +180,7 @@ function quickRequest(name, method, path, options) {
 
 quickRequest('API và database hoạt động', 'GET', '/health', {
   role: 'public',
+  before: "pm.environment.set('size', 'S'); pm.environment.set('quantity', '2'); pm.environment.set('promo_code', 'BREW10');",
   after:
     "pm.test('Database up', function () { pm.expect(data).to.eql({ status: 'ok', db: 'up' }); });",
 });
@@ -192,6 +199,10 @@ quickRequest('Đăng ký khách mới có SĐT và email', 'POST', '/auth/regist
   before: registerSetup,
   after:
     "pm.test('Đang chờ OTP, chưa cấp JWT', function () { pm.expect(data.requiresOtp).to.eql(true); pm.expect(data.accessToken).to.eql(undefined); });",
+});
+quickRequest('Gửi lại OTP quá sớm bị giới hạn', 'POST', '/auth/resend-otp', {
+  role: 'public', body: { phone: '{{customer_phone}}' }, expected: [429],
+  after: "pm.test('Phải đợi giữa hai lần gửi OTP', function () { pm.expect(data.code).to.eql('OTP_RESEND_TOO_SOON'); });",
 });
 quickRequest('Email chưa OTP bị chặn', 'POST', '/auth/login', {
   role: 'public',
@@ -346,6 +357,7 @@ quickRequest('Quản lý tạo barista mới', 'POST', '/admin/staff', {
   },
   before: staffSetup,
   after:
+    save('staff_id', 'data.id') +
     "pm.test('Nhân viên đăng nhập được ngay', function () { pm.expect(data.role).to.eql('BARISTA'); pm.expect(data.isPhoneVerified).to.eql(true); pm.expect(data.passwordHash).to.eql(undefined); });",
 });
 quickRequest('Barista mới đăng nhập bằng SĐT', 'POST', '/auth/login', {
@@ -378,11 +390,30 @@ const definitions = {
     role: 'public',
     body: emailBody,
     expected: [200],
-    after: loginSave('customer', 'CUSTOMER'),
+    before: `
+const role = String(pm.variables.get('login_role') || 'CUSTOMER').toUpperCase();
+if (!['CUSTOMER', 'BARISTA', 'MANAGER', 'STAFF'].includes(role)) throw new Error('login_role: CUSTOMER, BARISTA, MANAGER hoặc STAFF');
+if (role !== 'CUSTOMER') {
+  const prefix = role.toLowerCase();
+  const phone = pm.variables.get(prefix + '_phone');
+  const body = phone ? { phone } : { email: pm.variables.get(prefix + '_email') };
+  body.password = pm.variables.get(prefix + '_password');
+  pm.request.body.update(JSON.stringify(body));
+}
+`,
+    after: `
+if (pm.response.code === 200 && data && data.accessToken) {
+  const role = String(pm.variables.get('login_role') || 'CUSTOMER').toLowerCase();
+  pm.environment.set(role + '_token', data.accessToken);
+  pm.environment.set(role + '_id', String(data.user.id));
+  pm.environment.set('auth_token', data.accessToken);
+  pm.test('Nhận JWT đúng tài khoản', function () { pm.expect(data.user.role).to.eql(role === 'staff' ? 'BARISTA' : role.toUpperCase()); });
+}
+`,
     description:
-      'Mặc định dùng email. Muốn dùng SĐT, thay body bằng {"phone":"{{customer_phone}}","password":"{{customer_password}}"}. Token tự lưu vào customer_token.',
+      'Đổi login_role trong environment: CUSTOMER, BARISTA, MANAGER hoặc STAFF. CUSTOMER dùng body đang hiển thị (có thể đổi email thành phone); các vai trò khác lấy thông tin demo tương ứng. Tự lưu token theo vai trò và auth_token cho GET /auth/me. STAFF là tài khoản nhân viên mới, có quyền BARISTA trong dự án A2.',
   },
-  'GET /auth/me': {},
+  'GET /auth/me': { role: 'auth' },
   'GET /admin/staff': {
     role: 'manager',
     path: '/admin/staff?page=1&limit=10',
@@ -397,12 +428,22 @@ const definitions = {
       password: '{{staff_password}}',
     },
     before: staffSetup,
+    after: save('staff_id', 'data.id'),
+  },
+  'PATCH /admin/staff/{id}': {
+    role: 'manager', path: '/admin/staff/{{staff_id}}',
+    body: { fullName: 'Nhân viên đã sửa', phone: '{{staff_phone}}', email: '{{staff_email}}' },
+    description: 'MANAGER sửa nhân viên BARISTA. Giữ ít nhất SĐT hoặc email; dùng null để bỏ một định danh. Không đổi mật khẩu/vai trò qua API này.',
+  },
+  'DELETE /admin/staff/{id}': {
+    role: 'manager', path: '/admin/staff/{{staff_id}}',
+    description: 'Xóa mềm BARISTA; mất quyền đăng nhập và JWT cũ bị thu hồi, lịch sử nghiệp vụ được giữ lại. Chỉ thử với tài khoản nhân viên vừa tạo trong database test.',
   },
   'GET /products': {
     role: 'public',
     path: '/products?page=1&limit=20',
     after:
-      "if (data && data.data && data.data.length) pm.environment.set('product_id', String(data.data[0].id));",
+      "if (!pm.variables.get('product_id') && data && data.data && data.data.length) { const product = data.data.find(p => p.isActive !== false && p.availability && p.availability.some(a => a.maxQuantity > 0)) || data.data[0]; pm.environment.set('product_id', String(product.id)); }",
   },
   'POST /products': {
     role: 'barista',
@@ -430,7 +471,7 @@ const definitions = {
     path: '/products/{{new_product_id}}/toppings',
     body: { toppingIds: '{{topping_ids_json}}' },
   },
-  'GET /products/toppings': { role: 'public' },
+  'GET /products/toppings': { role: 'public', after: "if (!pm.variables.get('topping_id') && data && data.length) pm.environment.set('topping_id', String(data[0].id));" },
   'POST /products/toppings': {
     role: 'barista',
     body: { name: 'Topping Postman {{$guid}}', price: 5000 },
@@ -444,7 +485,7 @@ const definitions = {
   'POST /orders': {
     body: { items },
     headers: orderHeaders,
-    before: newKey('order_key'),
+    before: keepKey('order_key'),
     after: save('order_id', 'data.id'),
   },
   'GET /orders': { role: 'barista', path: '/orders?page=1&limit=10' },
@@ -469,11 +510,11 @@ const definitions = {
       mockResult: 'SUCCESS',
     },
     headers: paymentHeaders,
-    before: newKey('payment_key'),
+    before: keepKey('payment_key'),
     after:
       "if (pm.response.code < 300 && data && data.payment) pm.environment.set('payment_id', String(data.payment.id));",
     description:
-      'Mặc định WALLET giả lập ở profile 4001. Cùng khóa và cùng body được replay; tạo đơn mới nếu đơn hiện tại đã thanh toán. Để thử POINTS, bỏ mockResult và thêm pointsUsed là bội số của 20.',
+      'Mặc định WALLET giả lập ở profile 4101. Cùng khóa và cùng body được replay; tạo đơn mới nếu đơn hiện tại đã thanh toán. Để thử POINTS, bỏ mockResult và thêm pointsUsed là bội số của 20.',
   },
   'GET /payments/{id}': { path: '/payments/{{payment_id}}' },
   'POST /payments/{id}/refund': {
@@ -487,7 +528,7 @@ const definitions = {
     role: 'public',
     path: '/payments/vnpay/ipn?vnp_TxnRef={{vnp_txn_ref}}&vnp_Amount={{vnp_amount}}&vnp_ResponseCode={{vnp_response_code}}&vnp_TransactionStatus={{vnp_transaction_status}}&vnp_SecureHash={{vnp_secure_hash}}',
     description:
-      'Cần tham số và chữ ký thực từ VNPAY sandbox. Profile Postman 4001 không cấu hình VNPAY. IPN có thể trả HTTP 200 với RspCode báo lỗi chữ ký.',
+      'Cần tham số và chữ ký thực từ VNPAY sandbox. Profile Postman 4101 không cấu hình VNPAY. IPN trả HTTP 200 với RspCode=97 khi chữ ký sai; đây là kiểm tra từ chối callback, không phải thanh toán sandbox thành công.',
   },
   'GET /payments/vnpay/return': {
     path: '/payments/vnpay/return?vnp_TxnRef={{vnp_txn_ref}}&vnp_Amount={{vnp_amount}}&vnp_ResponseCode={{vnp_response_code}}&vnp_TransactionStatus={{vnp_transaction_status}}&vnp_SecureHash={{vnp_secure_hash}}',
@@ -502,7 +543,7 @@ const definitions = {
   'GET /inventory/ingredients': {
     role: 'barista',
     after:
-      "if (data && data.length) pm.environment.set('ingredient_id', String(data[0].id));",
+      "if (!pm.variables.get('ingredient_id') && data && data.length) pm.environment.set('ingredient_id', String(data[0].id));",
   },
   'POST /inventory/ingredients': {
     role: 'barista',
@@ -565,8 +606,8 @@ const definitions = {
       quantity: '1000.000',
       reason: 'Nhập kho thử từ Postman',
     },
-    headers: [['Idempotency-Key', '{{stock_key}}']],
-    before: newKey('stock_key'),
+    headers: [['Idempotency-Key', '{{receipt_key}}']],
+    before: keepKey('receipt_key'),
     after: save('movement_id', 'data.id'),
   },
   'POST /inventory/adjustments': {
@@ -576,30 +617,16 @@ const definitions = {
       quantity: '-1.000',
       reason: 'Hao hụt thử từ Postman',
     },
-    headers: [['Idempotency-Key', '{{stock_key}}']],
-    before: newKey('stock_key'),
+    headers: [['Idempotency-Key', '{{adjustment_key}}']],
+    before: keepKey('adjustment_key'),
   },
   'GET /health': { role: 'public' },
   'GET /': { role: 'public', path: '' },
 };
 
+addFullFlow({ quickRequest, request, quick, definitions, items, save, newKey, loginSave, staffSetup, orderHeaders, paymentHeaders, paymentBody });
+
 const folders = new Map();
-function folderFor(path) {
-  if (path.startsWith('/auth')) return '02. Xác thực';
-  if (path.startsWith('/admin')) return '07. Quản lý nhân viên';
-  if (
-    path.startsWith('/inventory') ||
-    path.includes('/recipes/') ||
-    path.endsWith('/recipe')
-  )
-    return '06. Nguyên liệu, công thức và kho';
-  if (path.startsWith('/products') || path === '/toppings')
-    return '03. Thực đơn và topping';
-  if (path.startsWith('/orders')) return '04. Đơn hàng';
-  if (path.startsWith('/payments') || path.startsWith('/promotions'))
-    return '05. Thanh toán và khuyến mãi';
-  return '08. Hệ thống';
-}
 
 let routeCount = 0;
 const unused = new Set(Object.keys(definitions));
@@ -614,22 +641,23 @@ for (const [apiPath, methods] of Object.entries(spec.paths)) {
         `API mới chưa có ví dụ Postman: ${key}. Bổ sung definitions rồi generate lại.`,
       );
     unused.delete(key);
-    const folderName = folderFor(path);
+    const folderName = operation.tags?.[0] || 'App';
     if (!folders.has(folderName))
       folders.set(folderName, {
         name: folderName,
         description:
-          'Các request để gọi riêng. Đăng nhập đúng vai trò trước khi Send; chỉnh biến ID/body theo trạng thái dữ liệu hiện tại.',
+          'Các endpoint cùng nhóm Swagger. Đăng nhập đúng vai trò trước khi Send; chỉnh ID/body theo dữ liệu. Collection tự động nằm trong file BrewLiteA2.auto.postman_collection.json.',
         item: [],
       });
     folders.get(folderName).item.push(
       request(
-        `${method.toUpperCase()} ${path} — ${operation.summary || 'API gốc'}`,
+        `${method.toUpperCase()} ${apiPath}`,
         method.toUpperCase(),
         override.path ?? path,
         {
           ...override,
-          description: [operation.description, override.description]
+          description: [operation.summary, operation.description, override.description,
+            operation.requestBody?.content?.['application/json']?.schema ? 'Schema body (Swagger):\n```json\n' + JSON.stringify(operation.requestBody.content['application/json'].schema, null, 2) + '\n```' : '']
             .filter(Boolean)
             .join('\n\n'),
         },
@@ -646,21 +674,20 @@ if (unused.size)
 const collection = {
   info: {
     _postman_id: id('collection'),
-    name: 'BrewLite A2 — Kiểm thử API',
+    name: `BrewLite A2 — Swagger (${routeCount} API)`,
     description:
-      'Import collection và environment trong thư mục tests/postman. Chạy npm run postman:dev ở apps/api, chọn environment BrewLite A2 — Postman Demo, rồi chạy folder 01. Token và ID tự lưu vào environment. Folder 02–08 dùng gọi request riêng. Đọc tests/postman/README.md để xem tài khoản, thứ tự và cách dùng API dev :4000.',
+      'Đúng method/path và nhóm trong Swagger, dùng Send từng API như Try it out. Chọn environment BrewLite A2 — Postman Demo (4101), đăng nhập trong auth; login_role chọn CUSTOMER/BARISTA/MANAGER/STAFF. Token và ID tự lưu. Chạy toàn bộ bằng collection BrewLite A2 — Chạy toàn bộ API trong file auto riêng. Đọc tests/postman/README.md.',
     schema:
       'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
   },
   auth: auth('customer'),
-  item: [
-    quick,
-    ...[...folders.values()].sort((a, b) => a.name.localeCompare(b.name)),
-  ],
+  item: [...folders.values()],
 };
 
 const defaults = {
-  base_url: 'http://localhost:4001/api',
+  base_url: `${sourceUrl.replace('127.0.0.1', 'localhost')}/api`,
+  login_role: 'CUSTOMER',
+  auth_token: '',
   demo_customer_email: 'demo@brewlite.com',
   demo_customer_password: 'Demo@1234',
   customer_email: 'demo@brewlite.com',
@@ -682,9 +709,10 @@ const defaults = {
   barista_id: '',
   manager_id: '',
   staff_id: '',
-  product_id: '1',
-  topping_id: '1',
-  ingredient_id: '1',
+  retired_staff_token: '',
+  product_id: '',
+  topping_id: '',
+  ingredient_id: '',
   quantity: '2',
   size: 'S',
   topping_ids_json: '[]',
@@ -697,6 +725,8 @@ const defaults = {
   payment_method: 'WALLET',
   points_used: '700',
   stock_key: '',
+  receipt_key: '',
+  adjustment_key: '',
   movement_id: '',
   new_product_id: '',
   new_ingredient_id: '',
@@ -706,6 +736,17 @@ const defaults = {
   vnp_response_code: '00',
   vnp_transaction_status: '00',
   vnp_secure_hash: '',
+};
+collection.variable = Object.entries(defaults).map(([key, value]) => ({ key, value, type: 'string' }));
+const automation = {
+  ...collection,
+  info: { ...collection.info, _postman_id: id('automation'), name: 'BrewLite A2 — Chạy toàn bộ API',
+    description: 'Run toàn bộ collection theo thứ tự trên API test riêng. Tự đăng nhập, tạo dữ liệu và kiểm tra tất cả endpoint; 401/403/400 có chủ đích cũng phải PASS. Không dùng collection này trên database chính. VNPAY chỉ thử từ chối callback sai chữ ký, không gửi SMS hoặc giao dịch ngân hàng thật.' },
+  event: [{ listen: 'prerequest', script: { type: 'text/javascript', exec: lines(`
+const base = pm.variables.get('base_url');
+if (!${JSON.stringify([`http://localhost:${new URL(sourceUrl).port}/api`, `http://127.0.0.1:${new URL(sourceUrl).port}/api`])}.includes(base)) throw new Error('Collection tự động chỉ chạy trên API test localhost:${new URL(sourceUrl).port}/api.');
+`) } }],
+  item: [quick],
 };
 const environment = {
   id: id('environment'),
@@ -722,13 +763,30 @@ const environment = {
 };
 
 const usedVariables = new Set(
-  [...JSON.stringify(collection).matchAll(/{{([^{}]+)}}/g)]
+  [...JSON.stringify([collection, automation]).matchAll(/{{([^{}]+)}}/g)]
     .map((match) => match[1])
     .filter((key) => !key.startsWith('$')),
 );
 for (const variable of usedVariables)
   if (!(variable in defaults))
     throw new Error(`Thiếu biến environment: ${variable}`);
+
+// Validate everything before replacing any import file.
+function routeShape(value) {
+  return value.replace(/\{\{[^}]+\}\}|\{[^}]+\}/g, ':param').replace(/\/$/, '') || '/';
+}
+const covered = new Set(quick.item.map(item => item.request.method + ' ' + routeShape(item.request.url.replace('{{base_url}}', '').split('?')[0])));
+const missing = Object.keys(definitions).filter(key => {
+  const [method, path] = key.split(' ');
+  return !covered.has(method + ' ' + routeShape(path));
+});
+if (missing.length) throw new Error('Luồng tự động còn thiếu endpoint: ' + missing.join(', '));
+function checkScripts(node) {
+  for (const event of node.event || []) new Script(event.script.exec.join('\n'));
+  for (const child of node.item || []) checkScripts(child);
+}
+checkScripts(collection);
+checkScripts(automation);
 await writeFile(
   resolve(outputDirectory, 'BrewLiteA2.postman_collection.json'),
   JSON.stringify(collection, null, 2) + '\n',
@@ -737,6 +795,9 @@ await writeFile(
   resolve(outputDirectory, 'BrewLiteA2.postman_environment.json'),
   JSON.stringify(environment, null, 2) + '\n',
 );
+await writeFile(resolve(outputDirectory, 'BrewLiteA2.auto.postman_collection.json'), JSON.stringify(automation, null, 2) + '\n');
+await writeFile(resolve(outputDirectory, 'BrewLiteA2.openapi.json'), JSON.stringify(spec, null, 2) + '\n');
+
 console.log(
   `Đã tạo collection: ${quick.item.length} bước test tự động, ${routeCount} API đầy đủ, ${Object.keys(defaults).length} biến environment.`,
 );

@@ -1,74 +1,82 @@
-# Test API BrewLite A2 bằng Postman
+# Test toàn bộ API BrewLite A2 bằng Postman
 
-## Khởi động API test
+## Khởi động
 
-Sau khi đã cài dependencies và chuẩn bị `apps/api/.env` theo [README chính](../../README.md), mở terminal tại root repo:
+Tại root repo, sau khi cài dependencies của `apps/api` và chuẩn bị `.env`:
 
 ```powershell
 docker compose up -d --wait db
 npm.cmd --prefix apps/api run postman:dev
 ```
 
-Giữ terminal này chạy. Script tự generate Prisma, áp dụng migrations và seed vào database của `TEST_DATABASE_URL`, rồi chạy API tại **http://localhost:4001/api**. Swagger nằm ở **http://localhost:4001/api/docs**.
+Giữ terminal chạy. API test: **http://localhost:4101/api**; Swagger: **http://localhost:4101/api/docs**. Mặc định dùng **4101** vì 4000 là API A2 và 4001 thuộc dự án BrewLite khác trên máy. Có thể đổi bằng `POSTMAN_PORT`.
 
-Profile này dùng OTP local **123456**, thanh toán WALLET/CARD giả lập và secret riêng cho mỗi lần khởi động. Cấu hình `.env` hiện tại không bị sửa. Database test phải tồn tại và khác database chính; script kiểm tra điều kiện này trước khi seed. E2E dùng các schema riêng trong cùng database test.
+Launcher generate Prisma, migrate và seed `TEST_DATABASE_URL` (database `brewlite_test`, PostgreSQL A2 tại port 5433 trong thiết lập hiện tại). Database phải tồn tại và khác `DATABASE_URL`. Profile dùng OTP local **123456**, WALLET/CARD giả lập và secret riêng mỗi lần khởi động; không sửa secret trong `.env`. Khởi động lại profile thì đăng nhập lại.
 
-## Import và chạy
+## Import vào Postman
 
-1. Trong Postman, chọn **Import** và chọn cả hai file cùng thư mục:
-   - `BrewLiteA2.postman_collection.json`
-   - `BrewLiteA2.postman_environment.json`
-2. Chọn environment **BrewLite A2 — Postman Demo**. Biến `base_url` mặc định là `http://localhost:4001/api`.
-3. Trong collection **BrewLite A2 — Kiểm thử API**, chọn folder **01. Luồng test tự động** → **Run** → chạy 1 iteration theo thứ tự có sẵn.
+Chọn **Import** và chọn ba file cùng thư mục:
 
-Luồng gồm 31 request: health → đăng nhập demo → đăng ký khách mới → xác thực OTP → đăng nhập bằng SĐT/email → xem menu → đặt món → thanh toán → kiểm tra chống thanh toán lặp → barista hoàn tất đơn → kiểm tra phân quyền → quản lý tạo nhân viên. Các request tự lưu token và ID vào environment; không cần chép JWT thủ công.
+| File | Sử dụng |
+| --- | --- |
+| `BrewLiteA2.postman_collection.json` | **BrewLite A2 — Swagger (46 API)**: Send từng API như Swagger |
+| `BrewLiteA2.auto.postman_collection.json` | **BrewLite A2 — Chạy toàn bộ API**: Run theo thứ tự |
+| `BrewLiteA2.postman_environment.json` | Environment **BrewLite A2 — Postman Demo**, base_url `http://localhost:4101/api` |
 
-Hai request trả **401/403** trong folder này là tình huống kiểm tra quyền có chủ đích. Kết quả mong đợi là toàn bộ **53 assertions** đạt. Mỗi lượt chạy tạo khách, nhân viên và đơn hàng mới trong database test; không chạy cả collection vì các folder còn lại chứa thao tác gọi riêng phụ thuộc trạng thái dữ liệu.
+Collection thủ công có đúng **46 method/path**, chia **10 nhóm giống Swagger**: App, ingredients, products, inventory, auth, admin/staff, orders, payments, promotions, Health. Có cả API sửa và xóa nhân viên mới.
 
-Postman dùng [environment variables](https://learning.postman.com/docs/use/send-requests/variables/environment-variables/) để thay các giá trị `{{base_url}}`, `{{customer_token}}` và ID trong request.
+## Chạy toàn bộ
 
-## Tài khoản mẫu
+1. Chọn environment **BrewLite A2 — Postman Demo**.
+2. Chọn collection **BrewLite A2 — Chạy toàn bộ API** → **Run**.
+3. Giữ đủ **79 request**, **1 iteration**, chạy theo thứ tự.
 
-| Vai trò | Đăng nhập | Mật khẩu | Biến token |
+Kết quả đã xác nhận bằng Newman: **79/79 request, 124/124 assertions, 0 lỗi**. Luồng gọi đủ 46 endpoint và tự lưu token/ID:
+
+- Đăng ký, OTP, đăng nhập SĐT/email, quyền CUSTOMER/BARISTA/MANAGER và giới hạn gửi lại OTP.
+- Thực đơn, topping, nguyên liệu, nhập/hao hụt, chống nhập trùng, lịch sử kho, công thức và bật/tắt bán.
+- Tạo đơn, khuyến mãi, WALLET/CARD giả lập, chống thanh toán trùng, pha chế/hoàn tất, hủy, hoàn tiền và thanh toán/hoàn điểm.
+- Quản lý thêm/sửa/xóa nhân viên, thu hồi JWT và chặn đăng nhập sau xóa; tạo nhân viên mới còn hoạt động để thử tiếp.
+- Callback VNPAY sai chữ ký bị từ chối và thiếu cấu hình VNPAY trả lỗi đúng.
+
+Các response **400/401/403/404/429/503** có tên mô tả từ chối hoặc thiếu cấu hình là test có chủ đích: assertions vẫn phải xanh. Resend-OTP thử nhánh giới hạn 60 giây, không tự đợi để gửi lại thành công. Thanh toán ngân hàng VNPAY thật không nằm trong kết quả 79/124; cần sandbox và callback có chữ ký hợp lệ. Profile này không gửi SMS hoặc giao dịch ngân hàng thật.
+
+Mỗi lượt Run tạo dữ liệu mới trong database test. Collection tự động kiểm tra địa chỉ API test trước khi gửi. Chạy xong có token các vai trò và một đơn PENDING trong environment để thử Send thủ công. Collection Swagger dùng gọi riêng, không Run theo thứ tự nhóm vì các thao tác phụ thuộc trạng thái đơn/kho.
+
+## Đăng nhập và gọi từng API
+
+Mở **auth → POST /api/auth/login**. Đổi `login_role` trong environment rồi Send:
+
+| login_role | Đăng nhập mẫu | Mật khẩu | Token lưu |
 | --- | --- | --- | --- |
-| Khách demo | Email `demo@brewlite.com` | `Demo@1234` | `customer_token` |
-| Barista | Email `barista@brewlite.com` | `Barista@123` | `barista_token` |
-| Quản lý demo | SĐT `0900000001` | `Manager@123` | `manager_token` |
+| `CUSTOMER` | Email `demo@brewlite.com` hoặc khách mới từ Run | `Demo@1234` hoặc `customer_password` | `customer_token` |
+| `BARISTA` | Email `barista@brewlite.com` | `Barista@123` | `barista_token` |
+| `MANAGER` | SĐT `0900000001` | `Manager@123` | `manager_token` |
+| `STAFF` | `staff_phone` của nhân viên mới | `staff_password` | `staff_token` |
 
-Khách mới trong luồng có mật khẩu `Postman@1234`. SĐT và email được tạo tự động, xem trong biến `customer_phone` và `customer_email`. Nhân viên mới dùng `staff_phone`, `staff_password` và `staff_token`.
+`STAFF` là lựa chọn đăng nhập nhân viên; quyền backend vẫn là **BARISTA**. A2 dùng **MANAGER** để thêm/sửa/xóa nhân viên và bật/tắt bán sản phẩm. `GET /api/auth/me` dùng `auth_token` của lần đăng nhập/xác thực OTP gần nhất. Mỗi API khác dùng token đúng vai trò, không cần chép JWT thủ công.
 
-Mỗi request đã cấu hình Bearer token theo vai trò. Sau khi khởi động lại profile, chạy lại folder 01 để lấy token mới.
+`CUSTOMER` giữ body đang hiển thị để bạn sửa email/phone và mật khẩu. Các lựa chọn khác tự điền từ biến tương ứng. Nếu không chọn environment, collection có giá trị mặc định và lưu token/ID vào collection variables.
 
-## Gọi từng API
+GET danh sách thực đơn/nguyên liệu/topping chọn ID nếu đang trống. POST tạo mới lưu ID tương ứng. API kho dùng `quantity` dạng chuỗi thập phân, ví dụ `"1000.000"`. Tạo nguyên liệu → nhập kho → tạo món/topping → gắn công thức trước khi đặt món mới.
 
-Folder 02–08 chứa đủ **44 endpoint** đang có trong Swagger, chia theo xác thực, thực đơn, đơn hàng, thanh toán/khuyến mãi, kho/công thức, nhân viên và hệ thống. Chạy folder 01 trước để có token của các vai trò, rồi mở request cần thử và chọn **Send**. Quản lý xem danh sách nhân viên qua `GET /admin/staff?page=1&limit=10`.
+Request tạo đơn/thanh toán/nhập/điều chỉnh giữ Idempotency-Key khi Send lại. Khi muốn làm thao tác mới hoặc đổi body, xóa `order_key`, `payment_key`, `receipt_key` hoặc `adjustment_key` để sinh khóa mới. Hủy/hoàn tiền cần đơn ở trạng thái cho phép; đơn COMPLETED không hủy được.
 
-- Đăng nhập bằng email: `{"email":"{{customer_email}}","password":"{{customer_password}}"}`. Đăng nhập bằng SĐT: `{"phone":"{{customer_phone}}","password":"{{customer_password}}"}`. Tài khoản có SĐT phải hoàn tất OTP; gửi lại OTP cần đợi ít nhất 60 giây.
-- Request tạo đơn và thanh toán tự tạo `Idempotency-Key`. Bước thanh toán lặp trong folder 01 giữ nguyên khóa và body để kiểm tra replay. Nếu đổi nội dung request thủ công, dùng khóa mới.
-- Muốn thử hủy đơn hoặc hoàn tiền, tạo đơn mới phù hợp trạng thái. Đơn đã `COMPLETED` từ folder 01 không dùng cho các thao tác này.
-- Tạo nguyên liệu/sản phẩm/topping sẽ lưu `new_ingredient_id`, `new_product_id`, `new_topping_id`. Các request sửa, công thức, nhập và điều chỉnh kho sử dụng những ID này. Tạo nguyên liệu → nhập kho → tạo sản phẩm → cấu hình công thức trước khi đặt món mới. `quantity` trong API kho là chuỗi thập phân, ví dụ `"1000.000"`.
-- Các callback VNPAY có ví dụ riêng nhưng cần cấu hình sandbox và chữ ký hợp lệ từ VNPAY. Profile 4001 dùng thanh toán giả lập; luồng tự động không gọi VNPAY/eSMS thật.
+VNPAY IPN/return cần tham số và chữ ký thật từ sandbox; không dùng query của URL khởi tạo thanh toán thay callback. Để gọi ứng dụng cổng 4000, sao chép environment và đổi base_url, rồi đăng nhập bằng tài khoản thuộc database đó. OTP/mô phỏng chỉ được bảo đảm ở profile 4101.
 
-Nếu dùng API dev đang chạy tại cổng 4000, tạo bản sao environment và đổi `base_url` thành `http://localhost:4000/api`, rồi đăng nhập lại bằng tài khoản thuộc database đó. OTP `123456`, quản lý demo và thanh toán giả lập chỉ được bảo đảm ở profile `postman:dev`; luồng tự động được thiết kế cho profile này.
+## Kiểm tra và cập nhật
 
-## Chạy tự động trong terminal
-
-Giữ API test đang chạy, mở terminal thứ hai tại root:
+Giữ API test chạy, mở terminal thứ hai tại root:
 
 ```powershell
-npm.cmd exec --yes --package=newman@6.2.3 -- newman run tests/postman/BrewLiteA2.postman_collection.json -e tests/postman/BrewLiteA2.postman_environment.json --folder "01. Luồng test tự động" --bail
-```
+# Đối chiếu collection, nhóm, biến và script với Swagger snapshot.
+npm.cmd --prefix apps/api run postman:verify
 
-Lệnh tải Newman tạm thời, không thêm dependency vào ứng dụng. Đã kiểm tra local: **31 request / 53 assertions đạt**.
+# Chạy 79 request bằng Newman (tải từ npm vào cache lần đầu).
+npm.cmd --prefix apps/api run postman:test
 
-## Cập nhật collection khi API thay đổi
-
-`PATCH /products/{id}/status` dùng `manager_token`: chỉ quản lý được bật/tắt bán sản phẩm. Các nghiệp vụ quầy pha chế, kho, sản phẩm, topping và công thức dùng được với cả `barista_token` và `manager_token`.
-
-Giữ API test chạy rồi thực hiện:
-
-```powershell
+# Khi API đổi: lấy Swagger mới và tạo lại collection/environment.
 npm.cmd --prefix apps/api run postman:generate
 ```
 
-Script đối chiếu endpoint với `/api/docs-json`; nếu thêm hoặc xóa route, cập nhật ví dụ trong `scripts/postman/generate-postman.mjs` theo lỗi được báo rồi chạy lại. Lệnh tạo lại hai file import với token trống và biến mặc định. Nếu dùng cổng khác, truyền URL API gốc, ví dụ `npm.cmd --prefix apps/api run postman:generate -- http://localhost:4101`, và chỉnh `base_url` tương ứng trong Postman.
+Generate lưu snapshot `BrewLiteA2.openapi.json`, kiểm tra mọi route có ví dụ và có trong luồng tự động. Token trong các file import luôn trống. Để dùng cổng khác, khởi động profile với POSTMAN_PORT tương ứng rồi generate bằng URL đó, ví dụ `npm.cmd --prefix apps/api run postman:generate -- http://localhost:4102`.

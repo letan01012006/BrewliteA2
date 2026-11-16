@@ -16,6 +16,8 @@
     "start:dev": "nest start --watch",
     "postman:dev": "node ../../scripts/postman/start-postman.mjs",
     "postman:generate": "node ../../scripts/postman/generate-postman.mjs",
+    "postman:verify": "node ../../scripts/postman/verify-postman.mjs",
+    "postman:test": "npm exec --yes --package=newman@6.2.3 -- newman run ../../tests/postman/BrewLiteA2.auto.postman_collection.json -e ../../tests/postman/BrewLiteA2.postman_environment.json --bail",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main.js",
     "lint": "oxlint --type-aware --deny-warnings src/ test/ vitest.config.ts vitest.config.e2e.ts prisma.config.ts",

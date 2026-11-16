@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { QueryStaffDto } from './dto/query-staff.dto.js';
+import { UpdateStaffDto } from './dto/update-staff.dto.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
@@ -33,4 +34,22 @@ export class StaffController {
   @ApiResponse({ status: 403, description: 'CUSTOMER và BARISTA không có quyền cấp tài khoản' })
   @ApiResponse({ status: 409, description: 'Trùng phone hoặc email' })
   create(@Body() dto: RegisterDto) { return this.auth.createStaff(dto); }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'MANAGER sửa họ tên, số điện thoại và email của nhân viên' })
+  @ApiResponse({ status: 200, description: 'Thông tin BARISTA đã cập nhật; không trả mật khẩu hoặc OTP' })
+  @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ hoặc thiếu cả SĐT và email' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy nhân viên đang hoạt động' })
+  @ApiResponse({ status: 409, description: 'Trùng phone hoặc email' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateStaffDto) {
+    return this.auth.updateStaff(id, dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'MANAGER xóa nhân viên, thu hồi đăng nhập và giữ lịch sử nghiệp vụ' })
+  @ApiResponse({ status: 200, description: 'Đã xóa nhân viên khỏi danh sách' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy nhân viên đang hoạt động' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.auth.removeStaff(id);
+  }
 }

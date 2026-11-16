@@ -112,7 +112,7 @@ Tham chiếu: [PaymentsService](../../apps/api/src/payments/payments.service.ts)
 | Health | `GET /api/health` chạy `SELECT 1`; bình thường trả `{ "status": "ok", "db": "up" }`. Compose dùng health check để chờ dịch vụ. | Kiểm tra kết nối DB, không xác nhận gateway/SMS hoạt động; chưa tách liveness/readiness. |
 | Cấu hình API | Nest `ConfigModule`/`ConfigService`, biến môi trường và file `.env` local; `.env.example` là mẫu. | Kiểm tra cấu hình đang nằm ở từng nơi sử dụng; chưa có schema validate toàn bộ biến lúc bootstrap. |
 | Cấu hình frontend | `BACKEND_API_URL` dùng cho Next rewrite; trong Docker là `http://api:4000/api`. | Rewrite được đưa vào bản build; đổi URL phải build lại. Không có UI đổi server động. |
-| Môi trường test | `TEST_DATABASE_URL` tách database chính; Postman dùng cổng 4001, secret riêng, SMS local và mock payment. | CI hiện chạy lint/unit test/build; E2E database không nằm trong workflow CI hiện tại. |
+| Môi trường test | `TEST_DATABASE_URL` tách database chính; Postman dùng cổng 4101, secret riêng, SMS local và mock payment. | CI hiện chạy lint/unit test/build; E2E database không nằm trong workflow CI hiện tại. |
 
 Mã nguồn: [exception filter](../../apps/api/src/common/filters/all-exceptions.filter.ts), [health](../../apps/api/src/health/health.controller.ts), [cấu hình mẫu](../../apps/api/.env.example), [Postman launcher](../../scripts/postman/start-postman.mjs), [CI](../ci.md).
 
