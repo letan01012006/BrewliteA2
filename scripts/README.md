@@ -12,11 +12,15 @@ Các lệnh dưới đây chạy tại root repo. Script Postman tự tìm `apps
 # Chạy toàn bộ ứng dụng bằng Docker.
 docker compose up --build -d
 
-# Chạy API test riêng ở cổng 4001, dùng database test.
+# Chạy API test riêng ở cổng 4101, dùng database test.
 npm.cmd --prefix apps/api run postman:dev
 
 # Tạo lại collection/environment trong tests/postman khi API test đang chạy.
 npm.cmd --prefix apps/api run postman:generate
+
+# Kiểm tra collection với Swagger snapshot và chạy đủ 79 request.
+npm.cmd --prefix apps/api run postman:verify
+npm.cmd --prefix apps/api run postman:test
 ```
 
 Xem [hướng dẫn Docker](../docs/deployment.md) và [hướng dẫn Postman](../tests/postman/README.md).

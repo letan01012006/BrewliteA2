@@ -20,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException({ code: 'UNAUTHORIZED', message: 'Token không hợp lệ.' });
     // Authorize from current DB role, accepting legacy email JWTs and new null-email JWTs.
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
-    if (!user || (user.phone && !user.isPhoneVerified))
+    if (!user || user.deletedAt || (user.phone && !user.isPhoneVerified))
       throw new UnauthorizedException({ code: 'UNAUTHORIZED', message: 'Tài khoản không hợp lệ.' });
     return { id: user.id, email: user.email, role: user.role };
   }

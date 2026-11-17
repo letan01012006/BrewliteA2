@@ -19,4 +19,4 @@ node --test tests/deployment/*.test.mjs
 
 E2E cần PostgreSQL và `TEST_DATABASE_URL` trỏ tới database riêng trong `apps/api/.env`.
 
-Để dùng Postman, import `tests/postman/BrewLiteA2.postman_collection.json` và `tests/postman/BrewLiteA2.postman_environment.json`. Hướng dẫn đầy đủ và lệnh Newman nằm trong [postman/README.md](postman/README.md).
+Để dùng Postman, import `tests/postman/BrewLiteA2.postman_collection.json` (46 API theo nhóm Swagger), `tests/postman/BrewLiteA2.auto.postman_collection.json` (79 bước tự động) và `tests/postman/BrewLiteA2.postman_environment.json` (API test cổng 4101). Hướng dẫn và lệnh Newman nằm trong [postman/README.md](postman/README.md).

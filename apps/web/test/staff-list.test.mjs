@@ -221,3 +221,44 @@ test("staff list rejects late data after an account change or unmount and aborts
   assert.equal(signals[0].aborted, true);
   assert.equal(signals[1].aborted, false);
 });
+
+test("staff list opens edit/delete dialogs and reloads saved changes", async () => {
+  let changed = false;
+  const h = harness(async () => response([{ ...row, fullName: changed ? 'Tên mới' : row.fullName }]));
+  h.render();
+  await h.settle();
+  h.find(node => node.props?.['aria-label'] === `Sửa nhân viên ${row.fullName}`).props.onClick();
+  const dialog = h.find(node => node.props?.mode === 'edit');
+  assert.equal(dialog.props.staff.id, row.id);
+  changed = true;
+  dialog.props.onSaved('Đã cập nhật thông tin.');
+  h.render();
+  await h.settle();
+  assert.match(text(h.render()), /Tên mới/);
+  assert.match(text(h.render()), /Đã cập nhật thông tin/);
+  h.find(node => node.props?.['aria-label'] === 'Xóa nhân viên Tên mới').props.onClick();
+  const deletion = h.find(node => node.props?.mode === 'delete');
+  deletion.props.onClose();
+  assert.equal(h.find(node => node.props?.mode === 'delete'), undefined);
+});
+
+test("deleting the last staff member on a page returns to the preceding page", async () => {
+  const calls = [];
+  let removed = false;
+  const h = harness(async path => {
+    calls.push(path);
+    return response([row], path.includes('page=2') ? 2 : 1, removed ? 10 : 11);
+  });
+  h.render();
+  await h.settle();
+  h.find(node => node.props?.totalPages === 2).props.onChange(2);
+  h.render();
+  await h.settle();
+  h.find(node => node.props?.['aria-label'] === `Xóa nhân viên ${row.fullName}`).props.onClick();
+  removed = true;
+  h.find(node => node.props?.mode === 'delete').props.onSaved('Đã xóa nhân viên.');
+  h.render();
+  await h.settle();
+  assert.equal(calls.at(-1), '/admin/staff?page=1&limit=10');
+  assert.match(text(h.render()), /10 nhân viên/);
+});

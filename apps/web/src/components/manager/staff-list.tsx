@@ -2,13 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Pagination } from "@/components/ui/pagination";
+import { StaffDialog, type StaffMember } from "@/components/manager/staff-dialog";
 import { apiFetch, ApiError } from "@/lib/api/client";
 import { useAuthStore } from "@/store/auth-store";
-import type { PaginatedResponse, User } from "@/types";
-
-type StaffMember = Pick<User, "id" | "fullName" | "phone" | "email"> & {
-  createdAt: string;
-};
+import type { PaginatedResponse } from "@/types";
 
 export function StaffList({ managerId }: { managerId: number }) {
   const token = useAuthStore((state) => state.token);
@@ -19,6 +16,8 @@ export function StaffList({ managerId }: { managerId: number }) {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [action, setAction] = useState<{ mode: "edit" | "delete"; staff: StaffMember } | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -96,6 +95,8 @@ export function StaffList({ managerId }: { managerId: number }) {
         </button>
       </header>
 
+      {notice && <p role="status" className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
+
       {loading && (
         <p role="status" className="py-8 text-center text-sm text-cafe-muted">
           Đang tải danh sách nhân viên…
@@ -151,6 +152,14 @@ export function StaffList({ managerId }: { managerId: number }) {
                   </dd>
                 </div>
               </dl>
+              <div className="mt-4 flex flex-wrap justify-end gap-2">
+                <button type="button" aria-label={`Sửa nhân viên ${staff.fullName}`}
+                  onClick={() => { setNotice(null); setAction({ mode: "edit", staff }); }}
+                  className="cursor-pointer rounded-lg border border-cafe-line px-3 py-2 text-sm font-semibold text-cafe-primary hover:bg-cafe-soft">Sửa</button>
+                <button type="button" aria-label={`Xóa nhân viên ${staff.fullName}`}
+                  onClick={() => { setNotice(null); setAction({ mode: "delete", staff }); }}
+                  className="cursor-pointer rounded-lg border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50">Xóa</button>
+              </div>
             </li>
           ))}
         </ul>
@@ -163,6 +172,13 @@ export function StaffList({ managerId }: { managerId: number }) {
           disabled={loading}
         />
       )}
+      {action && <StaffDialog key={`${action.mode}-${action.staff.id}`} staff={action.staff} mode={action.mode}
+        managerId={managerId} onClose={() => setAction(null)} onSaved={message => {
+          if (action.mode === "delete" && result?.data.length === 1 && page > 1) setPage(page - 1);
+          setAction(null);
+          setNotice(message);
+          refresh();
+        }} />}
     </section>
   );
 }

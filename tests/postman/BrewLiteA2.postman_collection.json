@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "ebe7568b-1541-4c6a-af1d-0f394f0a95e7",
-    "name": "BrewLite A2 — Kiểm thử API",
-    "description": "Import collection và environment trong thư mục tests/postman. Chạy npm run postman:dev ở apps/api, chọn environment BrewLite A2 — Postman Demo, rồi chạy folder 01. Token và ID tự lưu vào environment. Folder 02–08 dùng gọi request riêng. Đọc tests/postman/README.md để xem tài khoản, thứ tự và cách dùng API dev :4000.",
+    "name": "BrewLite A2 — Swagger (46 API)",
+    "description": "Đúng method/path và nhóm trong Swagger, dùng Send từng API như Try it out. Chọn environment BrewLite A2 — Postman Demo (4101), đăng nhập trong auth; login_role chọn CUSTOMER/BARISTA/MANAGER/STAFF. Token và ID tự lưu. Chạy toàn bộ bằng collection BrewLite A2 — Chạy toàn bộ API trong file auto riêng. Đọc tests/postman/README.md.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -17,12 +17,12 @@
   },
   "item": [
     {
-      "name": "01. Luồng test tự động",
-      "description": "Chạy cả folder theo thứ tự với environment Postman Demo ở cổng 4001. Tự tạo khách/nhân viên mới, lưu token/ID và test vòng đời đơn hàng bằng thanh toán giả lập.",
+      "name": "App",
+      "description": "Các endpoint cùng nhóm Swagger. Đăng nhập đúng vai trò trước khi Send; chỉnh ID/body theo dữ liệu. Collection tự động nằm trong file BrewLiteA2.auto.postman_collection.json.",
       "item": [
         {
-          "id": "e8e5cf01-0157-48c8-a24e-f916595c6673",
-          "name": "01. API và database hoạt động",
+          "id": "2978d650-4464-498b-abee-a0f405870fa9",
+          "name": "GET /api",
           "request": {
             "method": "GET",
             "auth": {
@@ -34,7 +34,7 @@
                 "value": "application/json"
               }
             ],
-            "url": "{{base_url}}/health",
+            "url": "{{base_url}}",
             "description": "\n\nQuyền: Không cần token."
           },
           "event": [
@@ -43,1815 +43,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "pm.test('Database up', function () { pm.expect(data).to.eql({ status: 'ok', db: 'up' }); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "c9860188-6098-4bed-abda-3b15589d9c19",
-          "name": "02. Đăng nhập khách demo bằng email",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/login",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{demo_customer_email}}\",\n  \"password\": \"{{demo_customer_password}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
                   "",
-                  "if (pm.response.code === 200 && data) {",
-                  "  pm.test('Nhận JWT và đúng vai trò CUSTOMER', function () {",
-                  "    pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
-                  "    pm.expect(data.user.role).to.eql('CUSTOMER');",
-                  "  });",
-                  "  if (data.accessToken) {",
-                  "    pm.environment.set('customer_token', data.accessToken);",
-                  "    pm.environment.set('customer_id', String(data.user.id));",
-                  "  }",
-                  "}",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "0ae6ea1a-2ff4-412e-ac60-0fa5f5b48474",
-          "name": "03. Đăng ký khách mới có SĐT và email",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/register",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Khách Postman\",\n  \"phone\": \"{{customer_phone}}\",\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{customer_password}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const suffix = Date.now().toString().slice(-8);",
-                  "pm.environment.set('customer_phone', '09' + suffix);",
-                  "pm.environment.set('customer_email', 'postman.' + Date.now() + '@example.test');",
-                  "pm.environment.set('customer_password', 'Postman@1234');",
-                  "pm.environment.unset('customer_token');"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "pm.test('Đang chờ OTP, chưa cấp JWT', function () { pm.expect(data.requiresOtp).to.eql(true); pm.expect(data.accessToken).to.eql(undefined); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "41518485-7777-4dac-a6d0-8bea169c1077",
-          "name": "04. Email chưa OTP bị chặn",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/login",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{customer_password}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 403', function () { pm.expect(pm.response.code).to.be.oneOf([403]); });",
-                  "pm.test('Yêu cầu xác thực đúng số điện thoại', function () { pm.expect(data.code).to.eql('PHONE_NOT_VERIFIED'); pm.expect(data.details.phone).to.eql(pm.environment.get('customer_phone')); pm.expect(data.accessToken).to.eql(undefined); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "394daf44-57ad-4ed8-ae2e-7cf35fd20d39",
-          "name": "05. Xác thực OTP 123456",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/verify-otp",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{customer_phone}}\",\n  \"code\": \"{{otp_code}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "if (pm.response.code === 200 && data) {",
-                  "  pm.test('Nhận JWT và đúng vai trò CUSTOMER', function () {",
-                  "    pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
-                  "    pm.expect(data.user.role).to.eql('CUSTOMER');",
-                  "  });",
-                  "  if (data.accessToken) {",
-                  "    pm.environment.set('customer_token', data.accessToken);",
-                  "    pm.environment.set('customer_id', String(data.user.id));",
-                  "  }",
-                  "}",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "a0035e7c-e62c-487d-afa1-a9b280d76c2a",
-          "name": "06. Đăng nhập bằng số điện thoại",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/login",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{customer_phone}}\",\n  \"password\": \"{{customer_password}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "if (pm.response.code === 200 && data) {",
-                  "  pm.test('Nhận JWT và đúng vai trò CUSTOMER', function () {",
-                  "    pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
-                  "    pm.expect(data.user.role).to.eql('CUSTOMER');",
-                  "  });",
-                  "  if (data.accessToken) {",
-                  "    pm.environment.set('customer_token', data.accessToken);",
-                  "    pm.environment.set('customer_id', String(data.user.id));",
-                  "  }",
-                  "}",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "bb1935b9-0b59-4137-a817-2abc62475b7c",
-          "name": "07. Đăng nhập bằng email của cùng tài khoản",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/login",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{customer_password}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "if (pm.response.code === 200 && data) {",
-                  "  pm.test('Nhận JWT và đúng vai trò CUSTOMER', function () {",
-                  "    pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
-                  "    pm.expect(data.user.role).to.eql('CUSTOMER');",
-                  "  });",
-                  "  if (data.accessToken) {",
-                  "    pm.environment.set('customer_token', data.accessToken);",
-                  "    pm.environment.set('customer_id', String(data.user.id));",
-                  "  }",
-                  "}",
-                  "pm.test('Cùng số điện thoại đã đăng ký', function () { pm.expect(data.user.phone).to.eql(pm.environment.get('customer_phone')); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "a767c92e-450b-4f89-aad4-9c72ad2a23f8",
-          "name": "08. Xem thông tin khách hiện tại",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/me",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "pm.test('Tài khoản đã xác thực', function () { pm.expect(data.isPhoneVerified).to.eql(true); pm.expect(String(data.id)).to.eql(pm.environment.get('customer_id')); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "1fe057a2-6cdd-4e84-acf1-a55de034a2fe",
-          "name": "09. Lấy thực đơn và lưu product_id",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/products?page=1&limit=20",
-            "description": "\n\nQuyền: Không cần token."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "pm.test('Có sản phẩm trong thực đơn', function () { pm.expect(data.data).to.be.an('array').that.is.not.empty; });",
-                  "if (data && data.data && data.data.length) {",
-                  "  const product = data.data.find(item => item.isActive !== false && item.price >= 25000) || data.data[0];",
-                  "  pm.environment.set('product_id', String(product.id));",
-                  "}",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "1884d6aa-bb44-409c-af6b-00a4f89d4d74",
-          "name": "10. Chi tiết sản phẩm",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/products/{{product_id}}",
-            "description": "\n\nQuyền: Không cần token."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "pm.test('Có lựa chọn size', function () { pm.expect(data.sizes).to.be.an('array').that.is.not.empty; });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "60870ec3-679d-4e8a-a644-11eebe3da887",
-          "name": "11. Danh sách topping",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/products/toppings",
-            "description": "\n\nQuyền: Không cần token."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "pm.test('Danh sách topping hợp lệ', function () { pm.expect(data).to.be.an('array'); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "2e13ba70-af9f-42ff-ae3f-c5019ecbdd2a",
-          "name": "12. Kiểm tra nguyên liệu trước khi đặt",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/inventory/availability",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"items\": [\n    {\n      \"productId\": {{product_id}},\n      \"size\": \"{{size}}\",\n      \"quantity\": {{quantity}},\n      \"toppingIds\": []\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "pm.test('Đủ nguyên liệu', function () { pm.expect(data.available).to.eql(true); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "2680ad0a-2d23-4f45-a8fa-f9fa252edf94",
-          "name": "13. Áp dụng khuyến mãi BREW10",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/promotions/validate",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"code\": \"{{promo_code}}\",\n  \"items\": [\n    {\n      \"productId\": {{product_id}},\n      \"size\": \"{{size}}\",\n      \"quantity\": {{quantity}},\n      \"toppingIds\": []\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "f27f2d68-b978-45e4-aa8e-b58e59121acc",
-          "name": "14. Tạo đơn và lưu order_id",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Idempotency-Key",
-                "value": "{{order_key}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"items\": [\n    {\n      \"productId\": {{product_id}},\n      \"size\": \"{{size}}\",\n      \"quantity\": {{quantity}},\n      \"toppingIds\": []\n    }\n  ],\n  \"promoCode\": \"{{promo_code}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.environment.set('order_key', pm.variables.replaceIn('{{$guid}}'));"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "if (pm.response.code < 300 && data.id !== undefined) pm.environment.set('order_id', String(data.id));",
-                  "pm.test('Đơn đang chờ thanh toán', function () { pm.expect(data.status).to.eql('PENDING'); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "4bfb343b-d69e-4aa4-a278-1047faf573ad",
-          "name": "15. Xem đơn vừa tạo",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/{{order_id}}",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "abb8adde-7991-4191-a148-b75ab6f320f0",
-          "name": "16. Thanh toán WALLET giả lập",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Idempotency-Key",
-                "value": "{{payment_key}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/payments",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"orderId\": {{order_id}},\n  \"method\": \"WALLET\",\n  \"mockResult\": \"SUCCESS\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.environment.set('payment_key', pm.variables.replaceIn('{{$guid}}'));"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "if (pm.response.code < 300 && data.payment.id !== undefined) pm.environment.set('payment_id', String(data.payment.id));",
-                  "pm.test('Thanh toán thành công và đơn đã PAID', function () { pm.expect(data.payment.status).to.eql('SUCCESS'); pm.expect(data.order.status).to.eql('PAID'); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "e7456c98-7df5-471a-a6f8-632653546d59",
-          "name": "17. Gửi lại cùng khóa, không thanh toán hai lần",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Idempotency-Key",
-                "value": "{{payment_key}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/payments",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"orderId\": {{order_id}},\n  \"method\": \"WALLET\",\n  \"mockResult\": \"SUCCESS\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "pm.test('Replay cùng giao dịch', function () { pm.expect(pm.response.headers.get('Idempotent-Replayed')).to.eql('true'); pm.expect(String(data.payment.id)).to.eql(pm.environment.get('payment_id')); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "e3a847a2-cf74-4aa6-a707-2335c7e1cb17",
-          "name": "18. Xem giao dịch",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/payments/{{payment_id}}",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "ad497e40-05fe-40fd-a0ad-04648eff650c",
-          "name": "19. Lịch sử đơn hàng của khách",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/me?page=1&limit=10",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "ea9d8a2c-bb37-4074-a899-6c3e93e3fb3e",
-          "name": "20. Đăng nhập barista",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/login",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{barista_email}}\",\n  \"password\": \"{{barista_password}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "if (pm.response.code === 200 && data) {",
-                  "  pm.test('Nhận JWT và đúng vai trò BARISTA', function () {",
-                  "    pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
-                  "    pm.expect(data.user.role).to.eql('BARISTA');",
-                  "  });",
-                  "  if (data.accessToken) {",
-                  "    pm.environment.set('barista_token', data.accessToken);",
-                  "    pm.environment.set('barista_id', String(data.user.id));",
-                  "  }",
-                  "}",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "cc5f4de1-d3ed-4cd8-ae26-7e834322f023",
-          "name": "21. Barista xem đơn tại quầy",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/active",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "9177a5f8-44a5-40e1-a2ce-6140e9d7b64a",
-          "name": "22. Bắt đầu pha chế",
-          "request": {
-            "method": "PATCH",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/{{order_id}}/status",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"PREPARING\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "47e469aa-1f47-451b-a73f-3cbf36e2d27e",
-          "name": "23. Sẵn sàng nhận",
-          "request": {
-            "method": "PATCH",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/{{order_id}}/status",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"READY\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "ac90b60a-010c-4d35-a382-df130701e66a",
-          "name": "24. Hoàn tất đơn",
-          "request": {
-            "method": "PATCH",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/{{order_id}}/status",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"COMPLETED\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "19574dab-4ee5-4c77-a399-5a2ee956e840",
-          "name": "25. Khách kiểm tra đơn đã hoàn tất",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/{{order_id}}",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "pm.test('Đơn đã COMPLETED', function () { pm.expect(data.status).to.eql('COMPLETED'); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "13cdaef2-7034-4be9-a500-a7c8ab8d18dd",
-          "name": "26. Barista xem tồn kho",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/inventory/stock",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "e5e25a66-9b66-475d-abbd-a48156e7d130",
-          "name": "27. Thiếu JWT bị chặn",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/me",
-            "description": "\n\nQuyền: Không cần token."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 401', function () { pm.expect(pm.response.code).to.be.oneOf([401]); });",
-                  "pm.test('Yêu cầu đăng nhập', function () { pm.expect(data.code).to.eql('UNAUTHORIZED'); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "f6e6cfc0-934b-4676-aa5d-00b130686e96",
-          "name": "28. Khách không được xem kho nội bộ",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/inventory/stock",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 403', function () { pm.expect(pm.response.code).to.be.oneOf([403]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "69ce0dd3-4af3-47b0-a74e-faa81ea3361f",
-          "name": "29. Đăng nhập quản lý demo",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/login",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{manager_phone}}\",\n  \"password\": \"{{manager_password}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "if (pm.response.code === 200 && data) {",
-                  "  pm.test('Nhận JWT và đúng vai trò MANAGER', function () {",
-                  "    pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
-                  "    pm.expect(data.user.role).to.eql('MANAGER');",
-                  "  });",
-                  "  if (data.accessToken) {",
-                  "    pm.environment.set('manager_token', data.accessToken);",
-                  "    pm.environment.set('manager_id', String(data.user.id));",
-                  "  }",
-                  "}",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "fc01b969-ea80-40a9-a0ab-d6a8e5c16c25",
-          "name": "30. Quản lý tạo barista mới",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{manager_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/admin/staff",
-            "description": "\n\nQuyền: MANAGER, dùng {{manager_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Barista Postman\",\n  \"phone\": \"{{staff_phone}}\",\n  \"email\": \"{{staff_email}}\",\n  \"password\": \"{{staff_password}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.environment.set('staff_phone', '08' + Date.now().toString().slice(-8));",
-                  "pm.environment.set('staff_email', 'barista.' + Date.now() + '@example.test');"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "pm.test('Nhân viên đăng nhập được ngay', function () { pm.expect(data.role).to.eql('BARISTA'); pm.expect(data.isPhoneVerified).to.eql(true); pm.expect(data.passwordHash).to.eql(undefined); });",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "815b461e-dc2d-4135-a394-313d77a38faf",
-          "name": "31. Barista mới đăng nhập bằng SĐT",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/login",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{staff_phone}}\",\n  \"password\": \"{{staff_password}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "if (pm.response.code === 200 && data) {",
-                  "  pm.test('Nhận JWT và đúng vai trò BARISTA', function () {",
-                  "    pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
-                  "    pm.expect(data.user.role).to.eql('BARISTA');",
-                  "  });",
-                  "  if (data.accessToken) {",
-                  "    pm.environment.set('staff_token', data.accessToken);",
-                  "    pm.environment.set('staff_id', String(data.user.id));",
-                  "  }",
-                  "}",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "02. Xác thực",
-      "description": "Các request để gọi riêng. Đăng nhập đúng vai trò trước khi Send; chỉnh biến ID/body theo trạng thái dữ liệu hiện tại.",
-      "item": [
-        {
-          "id": "60fedb76-b475-4469-a47d-352a6c5de0aa",
-          "name": "POST /auth/register — Đăng ký CUSTOMER chờ OTP; chưa cấp JWT hoặc điểm chào mừng",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/register",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Khách Postman\",\n  \"phone\": \"{{customer_phone}}\",\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{customer_password}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const suffix = Date.now().toString().slice(-8);",
-                  "pm.environment.set('customer_phone', '09' + suffix);",
-                  "pm.environment.set('customer_email', 'postman.' + Date.now() + '@example.test');",
-                  "pm.environment.set('customer_password', 'Postman@1234');",
-                  "pm.environment.unset('customer_token');"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "7054bd0c-88e7-4c82-a2a3-91971b16489a",
-          "name": "POST /auth/verify-otp — Xác thực OTP, nhận JWT và WELCOME_POINTS đúng một lần",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/verify-otp",
-            "description": "\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{customer_phone}}\",\n  \"code\": \"{{otp_code}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "if (pm.response.code === 200 && data) {",
-                  "  pm.test('Nhận JWT và đúng vai trò CUSTOMER', function () {",
-                  "    pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
-                  "    pm.expect(data.user.role).to.eql('CUSTOMER');",
-                  "  });",
-                  "  if (data.accessToken) {",
-                  "    pm.environment.set('customer_token', data.accessToken);",
-                  "    pm.environment.set('customer_id', String(data.user.id));",
-                  "  }",
-                  "}",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "15e9a7bd-8c57-4a45-a726-6da5b9f87373",
-          "name": "POST /auth/resend-otp — Gửi lại OTP sau ít nhất 60 giây, mã mới thay mã cũ",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/resend-otp",
-            "description": "Chỉ dùng cho tài khoản chưa OTP; đợi ít nhất 60 giây sau lần gửi trước.\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{customer_phone}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "2563fe41-2f2e-47e7-a275-5b9bbbc0e048",
-          "name": "POST /auth/login — Đăng nhập bằng số điện thoại hoặc email đã đăng ký",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/login",
-            "description": "Mặc định dùng email. Muốn dùng SĐT, thay body bằng {\"phone\":\"{{customer_phone}}\",\"password\":\"{{customer_password}}\"}. Token tự lưu vào customer_token.\n\nQuyền: Không cần token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{customer_password}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "if (pm.response.code === 200 && data) {",
-                  "  pm.test('Nhận JWT và đúng vai trò CUSTOMER', function () {",
-                  "    pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
-                  "    pm.expect(data.user.role).to.eql('CUSTOMER');",
-                  "  });",
-                  "  if (data.accessToken) {",
-                  "    pm.environment.set('customer_token', data.accessToken);",
-                  "    pm.environment.set('customer_id', String(data.user.id));",
-                  "  }",
-                  "}",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "75ad05f9-642b-485f-af27-a8f2b9402606",
-          "name": "GET /auth/me — Thông tin tài khoản hiện tại; email có thể null",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/auth/me",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -1867,1007 +60,12 @@
       ]
     },
     {
-      "name": "03. Thực đơn và topping",
-      "description": "Các request để gọi riêng. Đăng nhập đúng vai trò trước khi Send; chỉnh biến ID/body theo trạng thái dữ liệu hiện tại.",
+      "name": "ingredients",
+      "description": "Các endpoint cùng nhóm Swagger. Đăng nhập đúng vai trò trước khi Send; chỉnh ID/body theo dữ liệu. Collection tự động nằm trong file BrewLiteA2.auto.postman_collection.json.",
       "item": [
         {
-          "id": "59931cea-ab18-4aca-ac78-ed0e97bed134",
-          "name": "GET /products/toppings — Lấy danh sách tất cả topping đang bán",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/products/toppings",
-            "description": "\n\nQuyền: Không cần token."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "23eb3724-3900-4ff2-a88b-8760c2864701",
-          "name": "POST /products/toppings — Thêm mới topping",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/products/toppings",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Topping Postman {{$guid}}\",\n  \"price\": 5000\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "if (pm.response.code < 300 && data.id !== undefined) pm.environment.set('new_topping_id', String(data.id));",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "d3e613c3-a036-48ec-a4ad-5a8c3ee5f8a2",
-          "name": "PATCH /products/{id}/toppings — Thay thế toàn bộ topping được phép của sản phẩm; [] để gỡ hết",
-          "request": {
-            "method": "PATCH",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/products/{{new_product_id}}/toppings",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"toppingIds\": {{topping_ids_json}}\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "4730b2e8-9ff7-4496-a386-2ba03a6c5e6d",
-          "name": "PATCH /products/{id}/status — Cập nhật trạng thái bán (Đang bán / Tạm dừng) của sản phẩm",
-          "request": {
-            "method": "PATCH",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{manager_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/products/{{new_product_id}}/status",
-            "description": "Chỉ MANAGER được bật/tắt bán. Dùng new_product_id được lưu sau request tạo sản phẩm.\n\nQuyền: MANAGER, dùng {{manager_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"isActive\": false\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "ad6018fd-e582-43bd-a0d6-a47f6cbdfca2",
-          "name": "GET /products — Lấy danh sách sản phẩm (hỗ trợ tìm kiếm, lọc danh mục và phân trang)",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/products?page=1&limit=20",
-            "description": "Danh sách đang bán được xem công khai. includeInactive=true yêu cầu token BARISTA hoặc MANAGER.\n\nQuyền: Không cần token."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "if (data && data.data && data.data.length) pm.environment.set('product_id', String(data.data[0].id));",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "53dea12c-49c4-4bbd-ae53-c66148bc4c54",
-          "name": "POST /products — Thêm sản phẩm mới vào thực đơn",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/products",
-            "description": "Lưu new_product_id. Sau khi tạo, cấu hình công thức và nhập nguyên liệu để có thể bán.\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Cà phê Postman {{$guid}}\",\n  \"category\": \"Cà phê\",\n  \"price\": 35000,\n  \"imageUrl\": \"/img/tra-sua.jpg\",\n  \"description\": \"Sản phẩm tạo từ Postman\",\n  \"toppingIds\": []\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "if (pm.response.code < 300 && data.id !== undefined) pm.environment.set('new_product_id', String(data.id));",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "7ea62b35-d824-42ba-a8ae-f748f0285dfa",
-          "name": "GET /products/{id} — Lấy thông tin chi tiết một món kèm danh sách sizes và toppings",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/products/{{product_id}}",
-            "description": "\n\nQuyền: Không cần token."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "35516f9b-3de8-42b2-a910-347fa840af88",
-          "name": "GET /toppings — Lấy danh sách tất cả topping đang bán",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/toppings",
-            "description": "Đường dẫn tương thích cũ; ưu tiên /products/toppings khi viết client mới.\n\nQuyền: Không cần token."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "04. Đơn hàng",
-      "description": "Các request để gọi riêng. Đăng nhập đúng vai trò trước khi Send; chỉnh biến ID/body theo trạng thái dữ liệu hiện tại.",
-      "item": [
-        {
-          "id": "60d75533-7f6c-42cf-a461-f85497d4f716",
-          "name": "POST /orders — Tạo đơn PENDING, kiểm tra nguyên liệu và lưu công thức; chưa giữ kho",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Idempotency-Key",
-                "value": "{{order_key}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"items\": [\n    {\n      \"productId\": {{product_id}},\n      \"size\": \"{{size}}\",\n      \"quantity\": {{quantity}},\n      \"toppingIds\": []\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.environment.set('order_key', pm.variables.replaceIn('{{$guid}}'));"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "if (pm.response.code < 300 && data.id !== undefined) pm.environment.set('order_id', String(data.id));",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "dcba4c82-aa10-49b0-a1e7-9a74379b3e74",
-          "name": "GET /orders — Barista và quản lý xem toàn bộ đơn hàng trong quầy pha chế",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders?page=1&limit=10",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "960c687f-ed16-400b-abec-6136d7bf2a85",
-          "name": "GET /orders/me — Lấy lịch sử đơn hàng của người dùng hiện tại (hỗ trợ phân trang)",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/me?page=1&limit=10",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "5dcca11b-753a-4acc-ae27-42a5fe8fd5d5",
-          "name": "GET /orders/active — Toàn bộ đơn đang chờ pha chế, đang pha chế hoặc chờ nhận",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/active",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "66c5f848-871a-49a6-aa5c-7f9320253dee",
-          "name": "GET /orders/{id} — Xem chi tiết một đơn hàng kèm danh sách món và lịch sử thanh toán",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/{{order_id}}",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "c5a04533-4a42-42e6-a141-3ba302521cc8",
-          "name": "POST /orders/{id}/cancel — Hủy đơn hàng (hoàn kho, hoàn lượt mã giảm giá, hoàn tiền/thu hồi điểm nếu đã PAID)",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/{{order_id}}/cancel",
-            "description": "Tạo một đơn mới trước khi thử hủy. Đơn COMPLETED không hủy được.\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "98d09bbb-2b19-4ee0-aaf8-fdeb14f506f8",
-          "name": "PATCH /orders/{id}/status — Barista và quản lý cập nhật trạng thái đơn hàng (chỉ nhận: PREPARING -> READY -> COMPLETED)",
-          "request": {
-            "method": "PATCH",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/orders/{{order_id}}/status",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"{{order_status}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "05. Thanh toán và khuyến mãi",
-      "description": "Các request để gọi riêng. Đăng nhập đúng vai trò trước khi Send; chỉnh biến ID/body theo trạng thái dữ liệu hiện tại.",
-      "item": [
-        {
-          "id": "5c79d129-e597-46cf-a7de-fc5840e03c5b",
-          "name": "POST /payments — Thanh toán đơn hàng qua VNPAY hoặc phương thức thử nghiệm",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Idempotency-Key",
-                "value": "{{payment_key}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/payments",
-            "description": "Mặc định WALLET giả lập ở profile 4001. Cùng khóa và cùng body được replay; tạo đơn mới nếu đơn hiện tại đã thanh toán. Để thử POINTS, bỏ mockResult và thêm pointsUsed là bội số của 20.\n\nQuyền: CUSTOMER, dùng {{customer_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"orderId\": {{order_id}},\n  \"method\": \"{{payment_method}}\",\n  \"mockResult\": \"SUCCESS\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.environment.set('payment_key', pm.variables.replaceIn('{{$guid}}'));"
-                ]
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "if (pm.response.code < 300 && data && data.payment) pm.environment.set('payment_id', String(data.payment.id));",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "73ad5db4-9c74-409c-af7e-1aaa43bba057",
-          "name": "GET /payments/vnpay/ipn — Webhook IPN tiếp nhận thông báo kết quả từ cổng VNPAY",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/payments/vnpay/ipn?vnp_TxnRef={{vnp_txn_ref}}&vnp_Amount={{vnp_amount}}&vnp_ResponseCode={{vnp_response_code}}&vnp_TransactionStatus={{vnp_transaction_status}}&vnp_SecureHash={{vnp_secure_hash}}",
-            "description": "Cần tham số và chữ ký thực từ VNPAY sandbox. Profile Postman 4001 không cấu hình VNPAY. IPN có thể trả HTTP 200 với RspCode báo lỗi chữ ký.\n\nQuyền: Không cần token."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "49615ac4-8414-46a1-ad19-a6111c3d0622",
-          "name": "GET /payments/vnpay/return — Xác nhận và kiểm tra kết quả giao dịch sau khi khách quay lại từ VNPAY",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/payments/vnpay/return?vnp_TxnRef={{vnp_txn_ref}}&vnp_Amount={{vnp_amount}}&vnp_ResponseCode={{vnp_response_code}}&vnp_TransactionStatus={{vnp_transaction_status}}&vnp_SecureHash={{vnp_secure_hash}}",
-            "description": "Cần chữ ký VNPAY sandbox và token của chủ giao dịch. Dùng API dev có cấu hình VNPAY để kiểm thử callback thật.\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "a8056847-8124-43d5-a2bc-43af34b0d474",
-          "name": "POST /payments/{id}/refund — Yêu cầu hoàn tiền cho giao dịch đã thanh toán hoặc lỗi kho",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{barista_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/payments/{{payment_id}}/refund",
-            "description": "Yêu cầu giao dịch/đơn ở trạng thái cho phép hoàn tiền. Không dùng đơn COMPLETED từ folder test tự động.\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "a2d905f7-641d-4972-a844-04f60622bedf",
-          "name": "GET /payments/{id} — Xem chi tiết giao dịch thanh toán",
-          "request": {
-            "method": "GET",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/payments/{{payment_id}}",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        },
-        {
-          "id": "661d2786-0007-4b18-ab92-f5a1a6e616ab",
-          "name": "POST /promotions/validate — Kiểm tra tính hợp lệ và xem trước số tiền giảm của mã khuyến mãi",
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{customer_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{base_url}}/promotions/validate",
-            "description": "\n\nQuyền: CUSTOMER, dùng {{customer_token}}.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"code\": \"{{promo_code}}\",\n  \"items\": [\n    {\n      \"productId\": {{product_id}},\n      \"size\": \"{{size}}\",\n      \"quantity\": {{quantity}},\n      \"toppingIds\": []\n    }\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "(function () {",
-                  "let data = null;",
-                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
-                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "",
-                  "})();"
-                ]
-              }
-            }
-          ],
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "06. Nguyên liệu, công thức và kho",
-      "description": "Các request để gọi riêng. Đăng nhập đúng vai trò trước khi Send; chỉnh biến ID/body theo trạng thái dữ liệu hiện tại.",
-      "item": [
-        {
-          "id": "4206329a-0aed-403b-ad84-ffadc5fcd32d",
-          "name": "GET /inventory/units — Đơn vị gốc được hỗ trợ",
+          "id": "8a2c1cf8-006e-4ce9-a11c-9d9e036a1774",
+          "name": "GET /api/inventory/units",
           "request": {
             "method": "GET",
             "auth": {
@@ -2887,7 +85,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/units",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
+            "description": "Đơn vị gốc được hỗ trợ\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -2895,6 +93,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -2908,8 +108,8 @@
           "response": []
         },
         {
-          "id": "81da44bb-a66f-4d10-aa3c-dd19225fcaca",
-          "name": "GET /inventory/ingredients — Danh sách nguyên liệu",
+          "id": "48bde18d-4055-4abb-a74b-946a2ea6bc52",
+          "name": "GET /api/inventory/ingredients",
           "request": {
             "method": "GET",
             "auth": {
@@ -2929,7 +129,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/ingredients",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
+            "description": "Danh sách nguyên liệu\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -2937,11 +137,13 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
                   "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
-                  "if (data && data.length) pm.environment.set('ingredient_id', String(data[0].id));",
+                  "if (!pm.variables.get('ingredient_id') && data && data.length) vars.set('ingredient_id', String(data[0].id));",
                   "})();"
                 ]
               }
@@ -2950,8 +152,8 @@
           "response": []
         },
         {
-          "id": "a0438571-c9bb-4ad4-ab5c-c8906690caa0",
-          "name": "POST /inventory/ingredients — Tạo nguyên liệu với tồn ban đầu bằng 0",
+          "id": "32bf3970-1268-44ce-acd1-42ebe03849e5",
+          "name": "POST /api/inventory/ingredients",
           "request": {
             "method": "POST",
             "auth": {
@@ -2975,7 +177,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/ingredients",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
+            "description": "Tạo nguyên liệu với tồn ban đầu bằng 0\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/CreateIngredientDto\"\n}\n```\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"POSTMAN_{{$guid}}\",\n  \"name\": \"Nguyên liệu Postman {{$guid}}\",\n  \"unit\": \"GRAM\"\n}",
@@ -2992,11 +194,13 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
                   "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "if (pm.response.code < 300 && data.id !== undefined) pm.environment.set('new_ingredient_id', String(data.id));",
+                  "if (pm.response.code < 300 && data.id !== undefined) vars.set('new_ingredient_id', String(data.id));",
                   "})();"
                 ]
               }
@@ -3005,8 +209,8 @@
           "response": []
         },
         {
-          "id": "0a9b94fd-7454-41fb-ab61-b44c74a9c070",
-          "name": "GET /inventory/ingredients/{id} — Chi tiết nguyên liệu",
+          "id": "60d083dc-4e32-4224-a809-ec70cbce0cf0",
+          "name": "GET /api/inventory/ingredients/{id}",
           "request": {
             "method": "GET",
             "auth": {
@@ -3026,7 +230,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/ingredients/{{ingredient_id}}",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
+            "description": "Chi tiết nguyên liệu\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -3034,6 +238,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3047,8 +253,8 @@
           "response": []
         },
         {
-          "id": "dbf114b7-ec0b-42da-a161-f961c9e9752c",
-          "name": "PATCH /inventory/ingredients/{id} — Cập nhật metadata nguyên liệu, không sửa tồn",
+          "id": "38c72695-482b-4eb1-ad04-9a94e6122cc6",
+          "name": "PATCH /api/inventory/ingredients/{id}",
           "request": {
             "method": "PATCH",
             "auth": {
@@ -3072,7 +278,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/ingredients/{{new_ingredient_id}}",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
+            "description": "Cập nhật metadata nguyên liệu, không sửa tồn\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/UpdateIngredientDto\"\n}\n```\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"isActive\": true\n}",
@@ -3089,6 +295,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3102,8 +310,8 @@
           "response": []
         },
         {
-          "id": "fe319237-f7a3-4e3e-a26f-366c8a46b1c4",
-          "name": "GET /products/{id}/recipes/{size} — Công thức sản phẩm theo size",
+          "id": "e1abd902-1652-43e4-aaa5-1c2e3ad728b2",
+          "name": "GET /api/products/{id}/recipes/{size}",
           "request": {
             "method": "GET",
             "auth": {
@@ -3123,7 +331,7 @@
               }
             ],
             "url": "{{base_url}}/products/{{product_id}}/recipes/{{size}}",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
+            "description": "Công thức sản phẩm theo size\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -3131,6 +339,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3144,8 +354,8 @@
           "response": []
         },
         {
-          "id": "7c0f56e2-c521-4fb5-a149-78b01dbdad8f",
-          "name": "PUT /products/{id}/recipes/{size} — Thay thế toàn bộ công thức của size trong transaction",
+          "id": "636067f7-6436-4ab4-a299-7b738a812996",
+          "name": "PUT /api/products/{id}/recipes/{size}",
           "request": {
             "method": "PUT",
             "auth": {
@@ -3169,7 +379,7 @@
               }
             ],
             "url": "{{base_url}}/products/{{new_product_id}}/recipes/{{size}}",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
+            "description": "Thay thế toàn bộ công thức của size trong transaction\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/RecipeDto\"\n}\n```\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ingredients\": [\n    {\n      \"ingredientId\": {{new_ingredient_id}},\n      \"quantity\": \"16.000\"\n    }\n  ],\n  \"isActive\": true\n}",
@@ -3186,6 +396,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3199,8 +411,8 @@
           "response": []
         },
         {
-          "id": "058b1ee2-26c8-41c4-a08d-34a5d04f5c8d",
-          "name": "GET /products/toppings/{id}/recipe — Định mức topping đã chuẩn bị",
+          "id": "79acea4a-b567-4381-ab73-209ef2ade0e4",
+          "name": "GET /api/products/toppings/{id}/recipe",
           "request": {
             "method": "GET",
             "auth": {
@@ -3220,7 +432,7 @@
               }
             ],
             "url": "{{base_url}}/products/toppings/{{topping_id}}/recipe",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
+            "description": "Định mức topping đã chuẩn bị\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -3228,6 +440,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3241,8 +455,8 @@
           "response": []
         },
         {
-          "id": "b708b741-44da-4de4-a862-28797c673940",
-          "name": "PUT /products/toppings/{id}/recipe — Gắn nguyên liệu và định mức một phần topping",
+          "id": "f4c30238-126d-4323-a92f-56073b915491",
+          "name": "PUT /api/products/toppings/{id}/recipe",
           "request": {
             "method": "PUT",
             "auth": {
@@ -3266,7 +480,7 @@
               }
             ],
             "url": "{{base_url}}/products/toppings/{{new_topping_id}}/recipe",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
+            "description": "Gắn nguyên liệu và định mức một phần topping\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/ToppingRecipeDto\"\n}\n```\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ingredientId\": {{new_ingredient_id}},\n  \"quantityPerServing\": \"5.000\"\n}",
@@ -3283,6 +497,165 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "products",
+      "description": "Các endpoint cùng nhóm Swagger. Đăng nhập đúng vai trò trước khi Send; chỉnh ID/body theo dữ liệu. Collection tự động nằm trong file BrewLiteA2.auto.postman_collection.json.",
+      "item": [
+        {
+          "id": "b7bf0222-1cf1-427e-a3ac-831776a995e4",
+          "name": "GET /api/products/toppings",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/products/toppings",
+            "description": "Lấy danh sách tất cả topping đang bán\n\nQuyền: Không cần token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (!pm.variables.get('topping_id') && data && data.length) vars.set('topping_id', String(data[0].id));",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "6edea2fc-5db8-4852-a32b-a78935c37301",
+          "name": "POST /api/products/toppings",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{barista_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/products/toppings",
+            "description": "Thêm mới topping\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/CreateToppingDto\"\n}\n```\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Topping Postman {{$guid}}\",\n  \"price\": 5000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code < 300 && data.id !== undefined) vars.set('new_topping_id', String(data.id));",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "75097801-fd84-4305-ab8c-e2df8fd63e8f",
+          "name": "PATCH /api/products/{id}/toppings",
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{barista_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/products/{{new_product_id}}/toppings",
+            "description": "Thay thế toàn bộ topping được phép của sản phẩm; [] để gỡ hết\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/UpdateProductToppingsDto\"\n}\n```\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"toppingIds\": {{topping_ids_json}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3296,8 +669,239 @@
           "response": []
         },
         {
-          "id": "4ec9f6ee-64a0-42b9-a7b6-84f6efd48d88",
-          "name": "POST /inventory/availability — Kiểm tra nguyên liệu toàn giỏ, chưa giữ kho",
+          "id": "33cf02ca-fb71-4100-a630-e162484d2b66",
+          "name": "PATCH /api/products/{id}/status",
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/products/{{new_product_id}}/status",
+            "description": "Cập nhật trạng thái bán (Đang bán / Tạm dừng) của sản phẩm\n\nChỉ MANAGER được bật/tắt bán. Dùng new_product_id được lưu sau request tạo sản phẩm.\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/UpdateProductStatusDto\"\n}\n```\n\nQuyền: MANAGER, dùng {{manager_token}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "e4acbb01-400e-46c8-ad96-bd1f1fa8c2b2",
+          "name": "GET /api/products",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/products?page=1&limit=20",
+            "description": "Lấy danh sách sản phẩm (hỗ trợ tìm kiếm, lọc danh mục và phân trang)\n\nDanh sách đang bán được xem công khai. includeInactive=true yêu cầu token BARISTA hoặc MANAGER.\n\nQuyền: Không cần token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "if (!pm.variables.get('product_id') && data && data.data && data.data.length) { const product = data.data.find(p => p.isActive !== false && p.availability && p.availability.some(a => a.maxQuantity > 0)) || data.data[0]; vars.set('product_id', String(product.id)); }",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "4925d59f-07da-4dab-a553-031dd433191f",
+          "name": "POST /api/products",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{barista_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/products",
+            "description": "Thêm sản phẩm mới vào thực đơn\n\nLưu new_product_id. Sau khi tạo, cấu hình công thức và nhập nguyên liệu để có thể bán.\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/CreateProductDto\"\n}\n```\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cà phê Postman {{$guid}}\",\n  \"category\": \"Cà phê\",\n  \"price\": 35000,\n  \"imageUrl\": \"/img/tra-sua.jpg\",\n  \"description\": \"Sản phẩm tạo từ Postman\",\n  \"toppingIds\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code < 300 && data.id !== undefined) vars.set('new_product_id', String(data.id));",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "4c66bee1-a4df-4854-a94a-a9fbefdba2e6",
+          "name": "GET /api/products/{id}",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/products/{{product_id}}",
+            "description": "Lấy thông tin chi tiết một món kèm danh sách sizes và toppings\n\nQuyền: Không cần token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "9f8fd2e1-3adb-4efa-af44-393fbaf3264a",
+          "name": "GET /api/toppings",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/toppings",
+            "description": "Lấy danh sách tất cả topping đang bán\n\nĐường dẫn tương thích cũ; ưu tiên /products/toppings khi viết client mới.\n\nQuyền: Không cần token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "inventory",
+      "description": "Các endpoint cùng nhóm Swagger. Đăng nhập đúng vai trò trước khi Send; chỉnh ID/body theo dữ liệu. Collection tự động nằm trong file BrewLiteA2.auto.postman_collection.json.",
+      "item": [
+        {
+          "id": "a25dd8df-1d04-4f3d-add6-e6b6480c8b7e",
+          "name": "POST /api/inventory/availability",
           "request": {
             "method": "POST",
             "auth": {
@@ -3314,7 +918,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/availability",
-            "description": "\n\nQuyền: Không cần token.",
+            "description": "Kiểm tra nguyên liệu toàn giỏ, chưa giữ kho\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/AvailabilityDto\"\n}\n```\n\nQuyền: Không cần token.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"items\": [\n    {\n      \"productId\": {{product_id}},\n      \"size\": \"{{size}}\",\n      \"quantity\": {{quantity}},\n      \"toppingIds\": []\n    }\n  ]\n}",
@@ -3331,6 +935,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3344,8 +950,8 @@
           "response": []
         },
         {
-          "id": "14e407fc-020d-4736-a7b0-1a37b25f2c58",
-          "name": "GET /inventory/stock — Tồn và lượng khả dụng",
+          "id": "7e9c1b12-9d65-4d49-a8bb-af4824ab90f3",
+          "name": "GET /api/inventory/stock",
           "request": {
             "method": "GET",
             "auth": {
@@ -3365,7 +971,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/stock",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
+            "description": "Tồn và lượng khả dụng\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -3373,6 +979,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3386,8 +994,8 @@
           "response": []
         },
         {
-          "id": "ce7009e4-8df9-4fcd-a9bc-0cd3d53240ff",
-          "name": "GET /inventory/movements — Lịch sử biến động kho (phân trang)",
+          "id": "30123068-6802-4d3c-a340-5145bae289a5",
+          "name": "GET /api/inventory/movements",
           "request": {
             "method": "GET",
             "auth": {
@@ -3407,7 +1015,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/movements?page=1&limit=20",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
+            "description": "Lịch sử biến động kho (phân trang)\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
           },
           "event": [
             {
@@ -3415,6 +1023,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3428,8 +1038,8 @@
           "response": []
         },
         {
-          "id": "acc83f5a-dd47-4fb3-a3a9-df5bc3d6bfcf",
-          "name": "POST /inventory/receipts — Nhập kho; cùng khóa và nội dung trả lại movement cũ",
+          "id": "484045ff-4286-4f6c-af35-abd12ce7073b",
+          "name": "POST /api/inventory/receipts",
           "request": {
             "method": "POST",
             "auth": {
@@ -3449,7 +1059,7 @@
               },
               {
                 "key": "Idempotency-Key",
-                "value": "{{stock_key}}"
+                "value": "{{receipt_key}}"
               },
               {
                 "key": "Content-Type",
@@ -3457,7 +1067,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/receipts",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
+            "description": "Nhập kho; cùng khóa và nội dung trả lại movement cũ\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/StockAdjustmentDto\"\n}\n```\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ingredientId\": {{new_ingredient_id}},\n  \"quantity\": \"1000.000\",\n  \"reason\": \"Nhập kho thử từ Postman\"\n}",
@@ -3474,7 +1084,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.environment.set('stock_key', pm.variables.replaceIn('{{$guid}}'));"
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "if (!pm.variables.get('receipt_key')) { vars.set('receipt_key', pm.variables.replaceIn('{{$guid}}')); }"
                 ]
               }
             },
@@ -3483,11 +1094,13 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
                   "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "if (pm.response.code < 300 && data.id !== undefined) pm.environment.set('movement_id', String(data.id));",
+                  "if (pm.response.code < 300 && data.id !== undefined) vars.set('movement_id', String(data.id));",
                   "})();"
                 ]
               }
@@ -3496,8 +1109,8 @@
           "response": []
         },
         {
-          "id": "1042c161-9f88-4e4a-ad66-48b57451a04f",
-          "name": "POST /inventory/adjustments — Điều chỉnh delta tồn, không giảm dưới lượng giữ",
+          "id": "b351a68d-2460-4f7a-a03f-0968112b7a9c",
+          "name": "POST /api/inventory/adjustments",
           "request": {
             "method": "POST",
             "auth": {
@@ -3517,7 +1130,7 @@
               },
               {
                 "key": "Idempotency-Key",
-                "value": "{{stock_key}}"
+                "value": "{{adjustment_key}}"
               },
               {
                 "key": "Content-Type",
@@ -3525,7 +1138,7 @@
               }
             ],
             "url": "{{base_url}}/inventory/adjustments",
-            "description": "\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
+            "description": "Điều chỉnh delta tồn, không giảm dưới lượng giữ\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/StockAdjustmentDto\"\n}\n```\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"ingredientId\": {{new_ingredient_id}},\n  \"quantity\": \"-1.000\",\n  \"reason\": \"Hao hụt thử từ Postman\"\n}",
@@ -3542,7 +1155,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.environment.set('stock_key', pm.variables.replaceIn('{{$guid}}'));"
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "if (!pm.variables.get('adjustment_key')) { vars.set('adjustment_key', pm.variables.replaceIn('{{$guid}}')); }"
                 ]
               }
             },
@@ -3551,6 +1165,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3566,12 +1182,316 @@
       ]
     },
     {
-      "name": "07. Quản lý nhân viên",
-      "description": "Các request để gọi riêng. Đăng nhập đúng vai trò trước khi Send; chỉnh biến ID/body theo trạng thái dữ liệu hiện tại.",
+      "name": "auth",
+      "description": "Các endpoint cùng nhóm Swagger. Đăng nhập đúng vai trò trước khi Send; chỉnh ID/body theo dữ liệu. Collection tự động nằm trong file BrewLiteA2.auto.postman_collection.json.",
       "item": [
         {
-          "id": "66dde551-2353-4397-a957-c4f6a4be67fc",
-          "name": "GET /admin/staff — MANAGER xem danh sách nhân viên, mới nhất trước",
+          "id": "267be631-a1c3-4271-ac8c-4ba5c923149c",
+          "name": "POST /api/auth/register",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/register",
+            "description": "Đăng ký CUSTOMER chờ OTP; chưa cấp JWT hoặc điểm chào mừng\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/RegisterDto\"\n}\n```\n\nQuyền: Không cần token.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Khách Postman\",\n  \"phone\": \"{{customer_phone}}\",\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{customer_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "const suffix = Date.now().toString().slice(-8);",
+                  "vars.set('customer_phone', '09' + suffix);",
+                  "vars.set('customer_email', 'postman.' + Date.now() + '@example.test');",
+                  "vars.set('customer_password', 'Postman@1234');",
+                  "vars.unset('customer_token');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "69130ed8-040b-4326-ab0c-19998bb8b364",
+          "name": "POST /api/auth/verify-otp",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/verify-otp",
+            "description": "Xác thực OTP, nhận JWT và WELCOME_POINTS đúng một lần\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/VerifyOtpDto\"\n}\n```\n\nQuyền: Không cần token.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{customer_phone}}\",\n  \"code\": \"{{otp_code}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "if (pm.response.code === 200 && data) {",
+                  "  pm.test('Nhận JWT và đúng vai trò CUSTOMER', function () {",
+                  "    pm.expect(data.accessToken).to.be.a('string').and.not.empty;",
+                  "    pm.expect(data.user.role).to.eql('CUSTOMER');",
+                  "  });",
+                  "  if (data.accessToken) {",
+                  "    vars.set('customer_token', data.accessToken);",
+                  "    vars.set('customer_id', String(data.user.id));",
+                  "    vars.set('auth_token', data.accessToken);",
+                  "  }",
+                  "}",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "395e385b-0208-4a42-afb3-01e281598b13",
+          "name": "POST /api/auth/resend-otp",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/resend-otp",
+            "description": "Gửi lại OTP sau ít nhất 60 giây, mã mới thay mã cũ\n\nChỉ dùng cho tài khoản chưa OTP; đợi ít nhất 60 giây sau lần gửi trước.\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/PhoneDto\"\n}\n```\n\nQuyền: Không cần token.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{customer_phone}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "27f4403b-6e77-4ba0-a28a-08a90fde5db7",
+          "name": "POST /api/auth/login",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "description": "Đăng nhập bằng số điện thoại hoặc email đã đăng ký\n\nĐổi login_role trong environment: CUSTOMER, BARISTA, MANAGER hoặc STAFF. CUSTOMER dùng body đang hiển thị (có thể đổi email thành phone); các vai trò khác lấy thông tin demo tương ứng. Tự lưu token theo vai trò và auth_token cho GET /auth/me. STAFF là tài khoản nhân viên mới, có quyền BARISTA trong dự án A2.\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/LoginDto\"\n}\n```\n\nQuyền: Không cần token.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{customer_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "const role = String(pm.variables.get('login_role') || 'CUSTOMER').toUpperCase();",
+                  "if (!['CUSTOMER', 'BARISTA', 'MANAGER', 'STAFF'].includes(role)) throw new Error('login_role: CUSTOMER, BARISTA, MANAGER hoặc STAFF');",
+                  "if (role !== 'CUSTOMER') {",
+                  "  const prefix = role.toLowerCase();",
+                  "  const phone = pm.variables.get(prefix + '_phone');",
+                  "  const body = phone ? { phone } : { email: pm.variables.get(prefix + '_email') };",
+                  "  body.password = pm.variables.get(prefix + '_password');",
+                  "  pm.request.body.update(JSON.stringify(body));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "if (pm.response.code === 200 && data && data.accessToken) {",
+                  "  const role = String(pm.variables.get('login_role') || 'CUSTOMER').toLowerCase();",
+                  "  vars.set(role + '_token', data.accessToken);",
+                  "  vars.set(role + '_id', String(data.user.id));",
+                  "  vars.set('auth_token', data.accessToken);",
+                  "  pm.test('Nhận JWT đúng tài khoản', function () { pm.expect(data.user.role).to.eql(role === 'staff' ? 'BARISTA' : role.toUpperCase()); });",
+                  "}",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "ac442d95-54b3-482c-a34c-a75798e1c855",
+          "name": "GET /api/auth/me",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/me",
+            "description": "Thông tin tài khoản hiện tại; email có thể null\n\nQuyền: AUTH, dùng {{auth_token}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "admin/staff",
+      "description": "Các endpoint cùng nhóm Swagger. Đăng nhập đúng vai trò trước khi Send; chỉnh ID/body theo dữ liệu. Collection tự động nằm trong file BrewLiteA2.auto.postman_collection.json.",
+      "item": [
+        {
+          "id": "5861501a-a51f-4349-a4e9-802158d6ffd8",
+          "name": "GET /api/admin/staff",
           "request": {
             "method": "GET",
             "auth": {
@@ -3591,7 +1511,7 @@
               }
             ],
             "url": "{{base_url}}/admin/staff?page=1&limit=10",
-            "description": "Danh sách nhân viên BARISTA, mới nhất trước; không trả mật khẩu hoặc dữ liệu OTP.\n\nQuyền: MANAGER, dùng {{manager_token}}."
+            "description": "MANAGER xem danh sách nhân viên, mới nhất trước\n\nDanh sách nhân viên BARISTA, mới nhất trước; không trả mật khẩu hoặc dữ liệu OTP.\n\nQuyền: MANAGER, dùng {{manager_token}}."
           },
           "event": [
             {
@@ -3599,6 +1519,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3612,8 +1534,8 @@
           "response": []
         },
         {
-          "id": "be48f941-b7a8-4414-afb5-0e4f70dd0b40",
-          "name": "POST /admin/staff — MANAGER cấp tài khoản BARISTA không cần OTP, đăng nhập ngay",
+          "id": "f69cdb57-f6ce-4b90-a973-63d98bc1f392",
+          "name": "POST /api/admin/staff",
           "request": {
             "method": "POST",
             "auth": {
@@ -3637,7 +1559,7 @@
               }
             ],
             "url": "{{base_url}}/admin/staff",
-            "description": "\n\nQuyền: MANAGER, dùng {{manager_token}}.",
+            "description": "MANAGER cấp tài khoản BARISTA không cần OTP, đăng nhập ngay\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/RegisterDto\"\n}\n```\n\nQuyền: MANAGER, dùng {{manager_token}}.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"fullName\": \"Barista Postman\",\n  \"phone\": \"{{staff_phone}}\",\n  \"email\": \"{{staff_email}}\",\n  \"password\": \"{{staff_password}}\"\n}",
@@ -3654,8 +1576,10 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.environment.set('staff_phone', '08' + Date.now().toString().slice(-8));",
-                  "pm.environment.set('staff_email', 'barista.' + Date.now() + '@example.test');"
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "vars.set('staff_phone', '08' + Date.now().toString().slice(-8));",
+                  "vars.set('staff_email', 'barista.' + Date.now() + '@example.test');"
                 ]
               }
             },
@@ -3664,40 +1588,56 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
                   "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
-                  "",
+                  "if (pm.response.code < 300 && data.id !== undefined) vars.set('staff_id', String(data.id));",
                   "})();"
                 ]
               }
             }
           ],
           "response": []
-        }
-      ]
-    },
-    {
-      "name": "08. Hệ thống",
-      "description": "Các request để gọi riêng. Đăng nhập đúng vai trò trước khi Send; chỉnh biến ID/body theo trạng thái dữ liệu hiện tại.",
-      "item": [
+        },
         {
-          "id": "4313592f-ea81-415e-ab0f-d13e59241eb4",
-          "name": "GET / — API gốc",
+          "id": "e862cc83-92ed-414d-a03b-8fb9fec9bd15",
+          "name": "PATCH /api/admin/staff/{id}",
           "request": {
-            "method": "GET",
+            "method": "PATCH",
             "auth": {
-              "type": "noauth"
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
             },
             "header": [
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
               }
             ],
-            "url": "{{base_url}}",
-            "description": "\n\nQuyền: Không cần token."
+            "url": "{{base_url}}/admin/staff/{{staff_id}}",
+            "description": "MANAGER sửa họ tên, số điện thoại và email của nhân viên\n\nMANAGER sửa nhân viên BARISTA. Giữ ít nhất SĐT hoặc email; dùng null để bỏ một định danh. Không đổi mật khẩu/vai trò qua API này.\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/UpdateStaffDto\"\n}\n```\n\nQuyền: MANAGER, dùng {{manager_token}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nhân viên đã sửa\",\n  \"phone\": \"{{staff_phone}}\",\n  \"email\": \"{{staff_email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           },
           "event": [
             {
@@ -3705,6 +1645,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3718,8 +1660,721 @@
           "response": []
         },
         {
-          "id": "be10e29b-9a04-46b0-a141-7ce5d092a099",
-          "name": "GET /health — API gốc",
+          "id": "770580d1-a39f-4d16-afd7-d8d4b5b4337f",
+          "name": "DELETE /api/admin/staff/{id}",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{manager_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admin/staff/{{staff_id}}",
+            "description": "MANAGER xóa nhân viên, thu hồi đăng nhập và giữ lịch sử nghiệp vụ\n\nXóa mềm BARISTA; mất quyền đăng nhập và JWT cũ bị thu hồi, lịch sử nghiệp vụ được giữ lại. Chỉ thử với tài khoản nhân viên vừa tạo trong database test.\n\nQuyền: MANAGER, dùng {{manager_token}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "orders",
+      "description": "Các endpoint cùng nhóm Swagger. Đăng nhập đúng vai trò trước khi Send; chỉnh ID/body theo dữ liệu. Collection tự động nằm trong file BrewLiteA2.auto.postman_collection.json.",
+      "item": [
+        {
+          "id": "6542513c-64f9-466d-a3b6-f4a0e871853e",
+          "name": "POST /api/orders",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{order_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/orders",
+            "description": "Tạo đơn PENDING, kiểm tra nguyên liệu và lưu công thức; chưa giữ kho\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/CreateOrderDto\"\n}\n```\n\nQuyền: CUSTOMER, dùng {{customer_token}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": {{product_id}},\n      \"size\": \"{{size}}\",\n      \"quantity\": {{quantity}},\n      \"toppingIds\": []\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "if (!pm.variables.get('order_key')) { vars.set('order_key', pm.variables.replaceIn('{{$guid}}')); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code < 300 && data.id !== undefined) vars.set('order_id', String(data.id));",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "6a03bcf3-2c85-4221-a05a-eefbcb8f59c0",
+          "name": "GET /api/orders",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{barista_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/orders?page=1&limit=10",
+            "description": "Barista và quản lý xem toàn bộ đơn hàng trong quầy pha chế\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "2a9b160b-3e33-4546-a2ee-65110269e2e0",
+          "name": "GET /api/orders/me",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/orders/me?page=1&limit=10",
+            "description": "Lấy lịch sử đơn hàng của người dùng hiện tại (hỗ trợ phân trang)\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "c0944401-89c2-43d2-abbf-222ec9582c4d",
+          "name": "GET /api/orders/active",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{barista_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/orders/active",
+            "description": "Toàn bộ đơn đang chờ pha chế, đang pha chế hoặc chờ nhận\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "0727a112-104c-43b1-a6b3-11e6468a174a",
+          "name": "GET /api/orders/{id}",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/orders/{{order_id}}",
+            "description": "Xem chi tiết một đơn hàng kèm danh sách món và lịch sử thanh toán\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "b2bc3315-b47b-4ff0-a0db-c3ef187eff1b",
+          "name": "POST /api/orders/{id}/cancel",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/orders/{{order_id}}/cancel",
+            "description": "Hủy đơn hàng (hoàn kho, hoàn lượt mã giảm giá, hoàn tiền/thu hồi điểm nếu đã PAID)\n\nTạo một đơn mới trước khi thử hủy. Đơn COMPLETED không hủy được.\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "24521085-aba4-470d-af94-ebf238357d0f",
+          "name": "PATCH /api/orders/{id}/status",
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{barista_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/orders/{{order_id}}/status",
+            "description": "Barista và quản lý cập nhật trạng thái đơn hàng (chỉ nhận: PREPARING -> READY -> COMPLETED)\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/UpdateOrderStatusDto\"\n}\n```\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"{{order_status}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "payments",
+      "description": "Các endpoint cùng nhóm Swagger. Đăng nhập đúng vai trò trước khi Send; chỉnh ID/body theo dữ liệu. Collection tự động nằm trong file BrewLiteA2.auto.postman_collection.json.",
+      "item": [
+        {
+          "id": "8140efa1-9040-4d6e-a046-a9aac416ece5",
+          "name": "POST /api/payments",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{payment_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/payments",
+            "description": "Thanh toán đơn hàng qua VNPAY hoặc phương thức thử nghiệm\n\nMặc định WALLET giả lập ở profile 4101. Cùng khóa và cùng body được replay; tạo đơn mới nếu đơn hiện tại đã thanh toán. Để thử POINTS, bỏ mockResult và thêm pointsUsed là bội số của 20.\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/ProcessPaymentDto\"\n}\n```\n\nQuyền: CUSTOMER, dùng {{customer_token}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": {{order_id}},\n  \"method\": \"{{payment_method}}\",\n  \"mockResult\": \"SUCCESS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "if (!pm.variables.get('payment_key')) { vars.set('payment_key', pm.variables.replaceIn('{{$guid}}')); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 201', function () { pm.expect(pm.response.code).to.be.oneOf([201]); });",
+                  "if (pm.response.code < 300 && data && data.payment) vars.set('payment_id', String(data.payment.id));",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "1c3c4a63-a6a4-4e14-af63-3e06a50d095b",
+          "name": "GET /api/payments/vnpay/ipn",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/payments/vnpay/ipn?vnp_TxnRef={{vnp_txn_ref}}&vnp_Amount={{vnp_amount}}&vnp_ResponseCode={{vnp_response_code}}&vnp_TransactionStatus={{vnp_transaction_status}}&vnp_SecureHash={{vnp_secure_hash}}",
+            "description": "Webhook IPN tiếp nhận thông báo kết quả từ cổng VNPAY\n\nCần tham số và chữ ký thực từ VNPAY sandbox. Profile Postman 4101 không cấu hình VNPAY. IPN trả HTTP 200 với RspCode=97 khi chữ ký sai; đây là kiểm tra từ chối callback, không phải thanh toán sandbox thành công.\n\nQuyền: Không cần token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "0d684868-70cd-489a-a942-4d574d10045e",
+          "name": "GET /api/payments/vnpay/return",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/payments/vnpay/return?vnp_TxnRef={{vnp_txn_ref}}&vnp_Amount={{vnp_amount}}&vnp_ResponseCode={{vnp_response_code}}&vnp_TransactionStatus={{vnp_transaction_status}}&vnp_SecureHash={{vnp_secure_hash}}",
+            "description": "Xác nhận và kiểm tra kết quả giao dịch sau khi khách quay lại từ VNPAY\n\nCần chữ ký VNPAY sandbox và token của chủ giao dịch. Dùng API dev có cấu hình VNPAY để kiểm thử callback thật.\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "71ede95d-6102-4cd0-a983-575fecfa5cf6",
+          "name": "POST /api/payments/{id}/refund",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{barista_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/payments/{{payment_id}}/refund",
+            "description": "Yêu cầu hoàn tiền cho giao dịch đã thanh toán hoặc lỗi kho\n\nYêu cầu giao dịch/đơn ở trạng thái cho phép hoàn tiền. Không dùng đơn COMPLETED từ folder test tự động.\n\nQuyền: BARISTA hoặc MANAGER, dùng {{barista_token}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "id": "d82c49c7-4c86-4963-a945-ddca58068f51",
+          "name": "GET /api/payments/{id}",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/payments/{{payment_id}}",
+            "description": "Xem chi tiết giao dịch thanh toán\n\nQuyền: CUSTOMER, dùng {{customer_token}}."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "promotions",
+      "description": "Các endpoint cùng nhóm Swagger. Đăng nhập đúng vai trò trước khi Send; chỉnh ID/body theo dữ liệu. Collection tự động nằm trong file BrewLiteA2.auto.postman_collection.json.",
+      "item": [
+        {
+          "id": "cb1e37d3-9542-40c3-a9e8-6ccedd156e4e",
+          "name": "POST /api/promotions/validate",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/promotions/validate",
+            "description": "Kiểm tra tính hợp lệ và xem trước số tiền giảm của mã khuyến mãi\n\nSchema body (Swagger):\n```json\n{\n  \"$ref\": \"#/components/schemas/ValidatePromotionDto\"\n}\n```\n\nQuyền: CUSTOMER, dùng {{customer_token}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{promo_code}}\",\n  \"items\": [\n    {\n      \"productId\": {{product_id}},\n      \"size\": \"{{size}}\",\n      \"quantity\": {{quantity}},\n      \"toppingIds\": []\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
+                  "(function () {",
+                  "let data = null;",
+                  "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
+                  "pm.test('HTTP 200', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+                  "",
+                  "})();"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "description": "Các endpoint cùng nhóm Swagger. Đăng nhập đúng vai trò trước khi Send; chỉnh ID/body theo dữ liệu. Collection tự động nằm trong file BrewLiteA2.auto.postman_collection.json.",
+      "item": [
+        {
+          "id": "3bb1ea55-a77e-4608-afdf-3cd50752a979",
+          "name": "GET /api/health",
           "request": {
             "method": "GET",
             "auth": {
@@ -3740,6 +2395,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const vars = pm.environment.get('base_url') ? pm.environment : pm.collectionVariables;",
+                  "",
                   "(function () {",
                   "let data = null;",
                   "try { data = pm.response.json(); } catch (_) { /* GET /api trả về text. */ }",
@@ -3753,6 +2410,263 @@
           "response": []
         }
       ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4101/api",
+      "type": "string"
+    },
+    {
+      "key": "login_role",
+      "value": "CUSTOMER",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "demo_customer_email",
+      "value": "demo@brewlite.com",
+      "type": "string"
+    },
+    {
+      "key": "demo_customer_password",
+      "value": "Demo@1234",
+      "type": "string"
+    },
+    {
+      "key": "customer_email",
+      "value": "demo@brewlite.com",
+      "type": "string"
+    },
+    {
+      "key": "customer_phone",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_password",
+      "value": "Demo@1234",
+      "type": "string"
+    },
+    {
+      "key": "barista_email",
+      "value": "barista@brewlite.com",
+      "type": "string"
+    },
+    {
+      "key": "barista_password",
+      "value": "Barista@123",
+      "type": "string"
+    },
+    {
+      "key": "manager_phone",
+      "value": "0900000001",
+      "type": "string"
+    },
+    {
+      "key": "manager_password",
+      "value": "Manager@123",
+      "type": "string"
+    },
+    {
+      "key": "staff_phone",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "staff_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "staff_password",
+      "value": "Barista@1234",
+      "type": "string"
+    },
+    {
+      "key": "otp_code",
+      "value": "123456",
+      "type": "string"
+    },
+    {
+      "key": "customer_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "barista_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "manager_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "staff_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "barista_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "manager_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "staff_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "retired_staff_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "topping_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ingredient_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "quantity",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "size",
+      "value": "S",
+      "type": "string"
+    },
+    {
+      "key": "topping_ids_json",
+      "value": "[]",
+      "type": "string"
+    },
+    {
+      "key": "promo_code",
+      "value": "BREW10",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_status",
+      "value": "PREPARING",
+      "type": "string"
+    },
+    {
+      "key": "payment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "payment_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "payment_method",
+      "value": "WALLET",
+      "type": "string"
+    },
+    {
+      "key": "points_used",
+      "value": "700",
+      "type": "string"
+    },
+    {
+      "key": "stock_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "receipt_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adjustment_key",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "movement_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "new_product_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "new_ingredient_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "new_topping_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vnp_txn_ref",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vnp_amount",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vnp_response_code",
+      "value": "00",
+      "type": "string"
+    },
+    {
+      "key": "vnp_transaction_status",
+      "value": "00",
+      "type": "string"
+    },
+    {
+      "key": "vnp_secure_hash",
+      "value": "",
+      "type": "string"
     }
   ]
 }

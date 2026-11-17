@@ -64,7 +64,7 @@ Trạng thái dưới đây chỉ áp dụng cho phần việc ghi trong từng 
 
 - **CI:** [PR #10](https://github.com/letan01012006/BrewliteA2/pull/10), [lượt fail](https://github.com/letan01012006/BrewliteA2/actions/runs/43614827866), [lượt pass](https://github.com/letan01012006/BrewliteA2/actions/runs/43615481701). Trích log được lưu trong [docs/ci.md](ci.md).
 - **Kiểm tra bản sửa CI:** 87 unit test API và 164 test frontend pass; lint/build hai app pass. Có thêm lượt chạy local 57 E2E thanh toán VNPAY được ghi nhận trong tài liệu CI.
-- **Postman:** luồng tự động 31 request, 53 kiểm tra đã chạy đạt trong phiên thiết lập; collection/environment nằm ở [tests/postman](../tests/postman/). Đây là kiểm tra API, không phải bằng chứng kiểm thử toàn bộ thao tác trình duyệt.
+- **Postman:** collection Swagger đủ 46 endpoint và luồng tự động 79 request / 124 kiểm tra đã chạy đạt trên profile test cổng 4101; các file nằm ở [tests/postman](../tests/postman/). Callback VNPAY thử từ chối chữ ký sai; giao dịch sandbox thật không nằm trong kết quả này. Đây là kiểm tra API, không phải bằng chứng kiểm thử toàn bộ thao tác trình duyệt.
 - **Docker local:** web, API và PostgreSQL đã được chạy và kiểm tra health/proxy/menu. Việc chạy local không đồng nghĩa đã có deployment cloud.
 
 ## Phần chưa ưu tiên trong hai sprint
